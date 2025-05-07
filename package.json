@@ -1,0 +1,29 @@
+{
+  "name": "express.js-api-and-postman-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ivancho1253/Express.js-API-and-Postman-Tests.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Ivancho1253/Express.js-API-and-Postman-Tests/issues"
+  },
+  "homepage": "https://github.com/Ivancho1253/Express.js-API-and-Postman-Tests#readme",
+  "dependencies": {
+    "@vitejs/plugin-vue": "^5.2.3",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "vite": "^6.3.5"
+  }
+}
