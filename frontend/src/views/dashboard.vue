@@ -20,11 +20,23 @@
         <ul>
           <li v-for="inv in invitaciones" :key="inv.id">
             <strong>{{ inv.materia }}</strong> - {{ inv.fecha }}<br />
-            Rol propuesto: {{ inv.titular ? 'ayudante' : 'titular' }}<br />
-            <button @click="aceptarInvitacion(inv.id)">Aceptar</button>
-            <button @click="rechazarInvitacion(inv.id)">Rechazar</button>
+            Tu rol propuesto: <strong>{{ inv.titular === usuarioActual.nombre ? 'titular' : 'ayudante' }}</strong><br />
+            El otro rol: 
+            <em>{{ inv.titular === usuarioActual.nombre ? inv.ayudante || 'Sin asignar' : inv.titular || 'Sin asignar' }}</em><br />
+            Estado: <strong>{{ inv.estado }}</strong><br />
+            
+            <button 
+              @click="aceptarInvitacion(inv.id)" 
+              :disabled="inv.estado !== 'pendiente'"
+            >Aceptar</button>
+            
+            <button 
+              @click="rechazarInvitacion(inv.id)" 
+              :disabled="inv.estado !== 'pendiente'"
+            >Rechazar</button>
           </li>
         </ul>
+
 
     </div>
   </template>

@@ -49,9 +49,12 @@ app.get('/api/profesores', (req, res) => {
 // Obtener invitaciones para un usuario
 app.get('/api/invitaciones/:usuario', (req, res) => {
   const { usuario } = req.params;
+
   const invitadas = invitaciones.filter(i => i.sugerido === usuario);
   res.json(invitadas);
 });
+
+
 
 
 // Aceptar invitación
