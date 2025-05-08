@@ -40,9 +40,43 @@ app.get('/api/profesores/:nombre', (req, res) => {
 app.get('/api/profesores', (req, res) => {
   res.json(profesores);
 });
+/*
+// Obtener invitaciones para un usuario
+app.get('/api/invitaciones/:usuario', (req, res) => {
+  const { usuario } = req.params;
+  const invitadas = invitaciones.filter(i => i.sugerido === usuario);
+  res.json(invitadas);
+});
+
+
+// Aceptar invitación
+app.post('/api/invitaciones/aceptar', (req, res) => {
+  const { id, usuario } = req.body;
+  const index = invitaciones.findIndex(i => i.id === id && i.sugerido === usuario);
+  if (index === -1) return res.status(404).json({ error: 'Invitación no encontrada' });
+
+  const invitacion = invitaciones.splice(index, 1)[0];
+
+  // Asignar al usuario
+  if (!invitacion.titular) invitacion.titular = usuario;
+  else invitacion.ayudante = usuario;
+
+  mesas.push(invitacion);
+
+  res.json({ success: true });
+});
+
+// Rechazar invitación
+app.post('/api/invitaciones/rechazar', (req, res) => {
+  const { id, usuario } = req.body;
+  const index = invitaciones.findIndex(i => i.id === id && i.sugerido === usuario);
+  if (index === -1) return res.status(404).json({ error: 'Invitación no encontrada' });
+
+  invitaciones.splice(index, 1);
+  res.json({ success: true });
+});*/
 
 console.log("Iniciando servidor...");
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
 });
-
