@@ -4,6 +4,11 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
+const { Invitaciones : invitaciones } = require('./data/invitaciones');
+console.log("Invitaciones cargadas:", invitaciones);
+const { obtenerEstadoInstancia } = require('./service/State');
+
+
 const { mesas } = require('./data/mesas');
 const profesores = require('./data/profesores');
 
@@ -40,7 +45,7 @@ app.get('/api/profesores/:nombre', (req, res) => {
 app.get('/api/profesores', (req, res) => {
   res.json(profesores);
 });
-/*
+
 // Obtener invitaciones para un usuario
 app.get('/api/invitaciones/:usuario', (req, res) => {
   const { usuario } = req.params;
@@ -52,29 +57,43 @@ app.get('/api/invitaciones/:usuario', (req, res) => {
 // Aceptar invitación
 app.post('/api/invitaciones/aceptar', (req, res) => {
   const { id, usuario } = req.body;
-  const index = invitaciones.findIndex(i => i.id === id && i.sugerido === usuario);
-  if (index === -1) return res.status(404).json({ error: 'Invitación no encontrada' });
+  const index = invitaciones.findIndex(i => i.id === id && i.sugerido === usuario && i.estado === 'pendiente');
+  if (index === -1) return res.status(404).json({ error: 'Invitación no encontrada o ya procesada' });
 
-  const invitacion = invitaciones.splice(index, 1)[0];
+  const invitacion = invitaciones[index];
+  const estado = obtenerEstadoInstancia(invitacion.estado);
 
-  // Asignar al usuario
-  if (!invitacion.titular) invitacion.titular = usuario;
-  else invitacion.ayudante = usuario;
-
-  mesas.push(invitacion);
-
-  res.json({ success: true });
+  try {
+    const actualizada = estado.aceptar(invitacion, usuario);
+    mesas.push(actualizada);
+    invitaciones.splice(index, 1);
+    res.json({ success: true, mesa: actualizada });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
 });
+
 
 // Rechazar invitación
 app.post('/api/invitaciones/rechazar', (req, res) => {
   const { id, usuario } = req.body;
-  const index = invitaciones.findIndex(i => i.id === id && i.sugerido === usuario);
-  if (index === -1) return res.status(404).json({ error: 'Invitación no encontrada' });
+  const index = invitaciones.findIndex(i => i.id === id && i.sugerido === usuario && i.estado === 'pendiente');
+  if (index === -1) return res.status(404).json({ error: 'Invitación no encontrada o ya procesada' });
 
-  invitaciones.splice(index, 1);
-  res.json({ success: true });
-});*/
+  const invitacion = invitaciones[index];
+  const estado = obtenerEstadoInstancia(invitacion.estado);
+
+  try {
+    estado.rechazar(invitacion, usuario);
+    invitaciones.splice(index, 1); // Podés elegir mantenerla si querés registrar rechazos
+    res.json({ success: true });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});
+
+
+
 
 console.log("Iniciando servidor...");
 app.listen(port, () => {

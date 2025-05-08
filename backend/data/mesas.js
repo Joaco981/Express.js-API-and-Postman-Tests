@@ -1,4 +1,3 @@
-// backend/data/mesas.js
 // data/mesas.js
 module.exports = {
     mesas: [
