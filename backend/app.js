@@ -4,16 +4,19 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-const { Invitaciones : invitaciones } = require('./data/invitaciones');
+const { Invitaciones: invitaciones } = require('./data/Invitaciones');
 console.log("Invitaciones cargadas:", invitaciones);
 const { obtenerEstadoInstancia } = require('./service/State');
 
-
-const { mesas } = require('./data/mesas');
-const profesores = require('./data/profesores');
+const { mesas } = require('./data/Mesas');
+const profesores = require('./data/Profesores');
 
 app.use(cors());
 app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.send('Bienvenidos al Sistema de Notificaciones UCP :D');
+})
 
 // Login
 app.post('/api/auth/login', (req, res) => {
@@ -46,6 +49,11 @@ app.get('/api/profesores', (req, res) => {
   res.json(profesores);
 });
 
+//Obtener invitaciones generales
+app.get('/api/invitaciones', (req, res) => {
+  res.json(invitaciones);
+})
+
 // Obtener invitaciones para un usuario
 app.get('/api/invitaciones/:usuario', (req, res) => {
   const { usuario } = req.params;
@@ -53,8 +61,6 @@ app.get('/api/invitaciones/:usuario', (req, res) => {
   const invitadas = invitaciones.filter(i => i.sugerido === usuario);
   res.json(invitadas);
 });
-
-
 
 
 // Aceptar invitación
@@ -69,7 +75,8 @@ app.post('/api/invitaciones/aceptar', (req, res) => {
   try {
     const actualizada = estado.aceptar(invitacion, usuario);
     mesas.push(actualizada);
-    invitaciones.splice(index, 1);
+    //NO BORRAR ESTA LINEA
+    //invitaciones.splice(index, 1);
     res.json({ success: true, mesa: actualizada });
   } catch (e) {
     res.status(400).json({ error: e.message });
@@ -88,7 +95,7 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
 
   try {
     estado.rechazar(invitacion, usuario);
-    invitaciones.splice(index, 1); // Podés elegir mantenerla si querés registrar rechazos
+    //invitaciones.splice(index, 1); // Podés elegir mantenerla si querés registrar rechazos
     res.json({ success: true });
   } catch (e) {
     res.status(400).json({ error: e.message });

@@ -10,12 +10,10 @@ class State {
   
   class Pendiente extends State {
     aceptar(invitacion, usuario) {
-      invitacion.estado = 'aceptada';
-      if (!invitacion.titular) invitacion.titular = usuario;
-      else invitacion.ayudante = usuario;
+      invitacion.estado = 'aceptada'; // usa el setter del modelo
       return invitacion;
     }
-  
+    
     rechazar(invitacion, usuario) {
       invitacion.estado = 'rechazada';
       return invitacion;

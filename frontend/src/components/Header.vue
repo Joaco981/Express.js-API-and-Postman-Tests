@@ -1,8 +1,8 @@
 <template>
     <header class = "header">
-        <h1>Mi Vue App</h1>
+        <h1>Sistema de Mesas de Examen UCP </h1>
         <button @click="toggleTheme">
-            cambiar a {{ darkMode ? 'modo claro' : 'modo oscuro' }}
+            Cambiar a {{ darkMode ? 'modo claro' : 'modo oscuro' }}
         </button>
     </header>
 </template>
