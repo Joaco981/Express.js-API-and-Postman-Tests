@@ -1,6 +1,6 @@
 // backend/service/State.js
 
-class State {
+class StateInvitacion {
   aceptar(invitacion, usuario) {
     throw new Error("Operación no válida en el estado actual");
   }
@@ -10,7 +10,7 @@ class State {
   }
 }
 
-class Pendiente extends State {
+class Pendiente extends StateInvitacion {
   aceptar(invitacion, usuario) {
     invitacion.estado = 'aceptada';
   }
@@ -20,8 +20,8 @@ class Pendiente extends State {
   }
 }
 
-class Aceptada extends State {}
-class Rechazada extends State {}
+class Aceptada extends StateInvitacion {}
+class Rechazada extends StateInvitacion {}
 
 function obtenerEstadoInstancia(estado) {
   switch (estado) {

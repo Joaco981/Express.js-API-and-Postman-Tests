@@ -3,11 +3,16 @@ const cors = require('cors');
 const app = express();
 const port = 3000;
 
-const { Invitaciones: invitaciones } = require('./data/Invitaciones');
-const { obtenerEstadoInstancia } = require('./service/State');
+const { Invitaciones: invitaciones } = require('./data/invitaciones');
+console.log("Invitaciones cargadas:", invitaciones);
 
-const { mesas } = require('./data/Mesas');
-const profesores = require('./data/Profesores');
+const { obtenerEstadoInstancia } = require('./service/StateInvitacion');
+
+const { mesas } = require('./data/mesas');
+const profesores = require('./data/profesores');
+const Notificador = require('./models/Notificador.js');
+
+const notificador = new Notificador(profesores);
 
 app.use(cors());
 app.use(express.json());
@@ -122,6 +127,15 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
+});
+// Todas las notificaciones
+app.get('/api/notificaciones', (req, res) => {
+  res.json(notificador.obtenerNotificaciones());
+});
+
+// Notificaciones de un usuario
+app.get('/api/notificaciones/:usuario', (req, res) => {
+  res.json(notificador.obtenerNotificacionesPorUsuario(req.params.usuario));
 });
 
 console.log("Iniciando servidor...");
