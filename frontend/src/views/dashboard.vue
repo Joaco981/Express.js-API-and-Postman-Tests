@@ -1,20 +1,22 @@
 <template>
   <div class="dashboard">
     <h2>Bienvenido, {{ usuarioActual.nombre }}</h2>
-    <h3>Mesas de Examen:</h3>
 
-    <ul>
-      <li v-for="mesa in mesasAsignadas" :key="mesa.id">
-        <strong>{{ mesa.materia }}</strong> - {{ mesa.fecha }}<br />
-        Tu rol: <strong>{{ obtenerRol(mesa) }}</strong><br />
-        {{ obtenerRol(mesa) === 'titular' ? 'Vocal' : 'Titular' }}:
-        <em>{{ obtenerOtroNombre(mesa) }}</em><br />
-        <strong>Alumnos:</strong>
-        <ul>
-          <li v-for="alumno in mesa.alumnos" :key="alumno">{{ alumno }}</li>
-        </ul>
-      </li>
-    </ul>
+    <div v-if="mesasAsignadas.length > 0">
+      <h3>Mesas de Examen:</h3>
+      <ul>
+        <li v-for="mesa in mesasAsignadas" :key="mesa.id">
+          <strong>{{ mesa.materia }}</strong> - {{ mesa.fecha }}<br />
+          Tu rol: <strong>{{ obtenerRol(mesa) }}</strong><br />
+          {{ obtenerRol(mesa) === 'titular' ? 'Vocal' : 'Titular' }}:
+          <em>{{ obtenerOtroNombre(mesa) }}</em><br />
+          <strong>Alumnos:</strong>
+          <ul>
+            <li v-for="alumno in mesa.alumnos" :key="alumno">{{ alumno }}</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
 
     <h3>Invitaciones:</h3>
     <ul>
@@ -63,10 +65,16 @@ export default {
 
   computed: {
     mesasAsignadas() {
+      // Mostrar solo las mesas donde el usuario participa Y la invitación fue aceptada
+      const aceptadas = this.invitaciones
+        .filter(inv => inv.estado === 'aceptada')
+        .map(inv => inv.mesa.id);
+
       return this.mesas.filter(
         mesa =>
-          mesa.titular.nombre === this.usuarioActual.nombre ||
-          mesa.vocal.nombre === this.usuarioActual.nombre
+          (mesa.titular.nombre === this.usuarioActual.nombre ||
+           mesa.vocal.nombre === this.usuarioActual.nombre) &&
+          aceptadas.includes(mesa.id)
       );
     }
   },

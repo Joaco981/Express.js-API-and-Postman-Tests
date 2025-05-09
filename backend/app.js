@@ -43,11 +43,18 @@ app.get('/api/profesores', (req, res) => {
   res.json(profesores);
 });
 
-// Obtener datos de un profesor
+// Obtener profesor segun su nombre
 app.get('/api/profesores/:nombre', (req, res) => {
-  const profe = profesores[req.params.nombre];
-  if (profe) res.json(profe);
-  else res.status(404).json({ error: 'Profesor no encontrado' });
+  const nombreBuscado = req.params.nombre.toLowerCase();
+
+  const listaProfesores = Object.values(profesores); // obtenemos [Profesor, Profesor]
+  const profesor = listaProfesores.find(p => p.nombre.toLowerCase() === nombreBuscado);
+
+  if (profesor) {
+    res.json(profesor); // usa .toJSON automáticamente si lo tenés en la clase
+  } else {
+    res.status(404).json({ error: 'Profesor no encontrado' });
+  }
 });
 
 // Obtener todas las invitaciones
@@ -84,7 +91,7 @@ app.post('/api/invitaciones/aceptar', (req, res) => {
   const estado = obtenerEstadoInstancia(invitacion.estado);
 
   try {
-    estado.aceptar(invitacion, usuario); // ✅ solo llamás al método
+    estado.aceptar(invitacion, usuario); //solo llamás al método
     mesas.push(invitacion.mesa);
     res.json({ success: true, mesa: invitacion.mesa });
   } catch (e) {
