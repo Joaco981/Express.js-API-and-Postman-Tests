@@ -1,28 +1,12 @@
 // data/Profesores.js
 const Profesor = require('../models/Profesor');
 
+const docente1 = new Profesor('Jose', '24172');
+const docente2 = new Profesor('Gilda', '67890');
+
 const profesores = {
-  Jose: new Profesor('Jose'),
-  Gilda: new Profesor('Gilda'),
-  Figue: new Profesor('Figue'),
-  Carlos: new Profesor('Carlos')
+  docente1: docente1,
+  docente2: docente2
 };
-
-// Asignamos materias y roles manualmente
-profesores.Jose.agregarMateria('Ing.Software II');
-profesores.Jose.agregarMateria('Paradigma II');
-
-profesores.Gilda.agregarMateria('Ing.Software II');
-profesores.Gilda.agregarMateria('Redes I');
-
-profesores.Figue.agregarMateria('Paradigma II');
-
-profesores.Carlos.agregarMateria('Redes I');
-
-// Agregamos propiedad de rol directamente (podés hacer un setter si querés mejorarlo)
-profesores.Jose.rol = 'titular';
-profesores.Gilda.rol = 'ayudante';
-profesores.Figue.rol = 'titular';
-profesores.Carlos.rol = 'ayudante';
 
 module.exports = profesores;

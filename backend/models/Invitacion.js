@@ -2,6 +2,7 @@ const Mesa = require('../models/Mesa');
 
 // Clase Invitacion: se asigna a un profesor con estado pendiente/aceptado/rechazado
 class Invitacion {
+
     constructor(mesa, estado = 'pendiente') {
         this._mesa = mesa;
         this._estado = estado;
