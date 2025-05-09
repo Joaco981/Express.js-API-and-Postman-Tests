@@ -1,13 +1,12 @@
 const Mesa = require('../backend/models/Mesa');
 const Profesor = require('../backend/models/Profesor');
-const Invitacion = require('../backend/models/Invitacion');
 
 describe("Clase Mesa", () => {
   let mesa;
   beforeEach(() => {
-    const titular = new Profesor('FigueGod');
+    const titular = new Profesor('Figueredo');
     const vocal   = new Profesor('Gilda');
-    mesa = new Mesa(1, 'Algebra', titular, vocal, '01/01/2025', ['Ivanchis', 'Joackensio']);
+    mesa = new Mesa(1, 'Algebra', titular, vocal, '01/01/2025', ['Ivan Cabrera', 'Joaquin Flores']);
   });
 
   test("propiedades iniciales", () => {
@@ -16,17 +15,17 @@ describe("Clase Mesa", () => {
     expect(mesa.titular).toBeInstanceOf(Profesor);
     expect(mesa.vocal).toBeInstanceOf(Profesor);
     expect(mesa.fecha).toBe('01/01/2025');
-    expect(mesa.alumnos).toEqual(['Ivanchis', 'Joackensio']);
+    expect(mesa.alumnos).toEqual(['Ivan Cabrera', 'Joaquin Flores']);
   });
 
   test("agregar alumno nuevo", () => {
-    mesa.agregarAlumno('Rodrix');
-    expect(mesa.alumnos).toContain('Rodrix');
+    mesa.agregarAlumno('Rodrigo Magallanes');
+    expect(mesa.alumnos).toContain('Rodrigo Magallanes');
   });
 
   test("no agrega alumno duplicado", () => {
-    mesa.agregarAlumno('Ivanchis');
-    const count = mesa.alumnos.filter(a => a === 'Ivanchis').length;
+    mesa.agregarAlumno('Ivan Cabrera');
+    const count = mesa.alumnos.filter(a => a === 'Ivan Cabrera').length;
     expect(count).toBe(1);
   });
 

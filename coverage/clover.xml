@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1746811811913" clover="3.2.0">
-  <project timestamp="1746811811913" name="All files">
-    <metrics statements="41" coveredstatements="20" conditionals="10" coveredconditionals="2" methods="23" coveredmethods="10" elements="74" coveredelements="32" complexity="0" loc="41" ncloc="41" packages="1" files="3" classes="3"/>
+<coverage generated="1746817027985" clover="3.2.0">
+  <project timestamp="1746817027985" name="All files">
+    <metrics statements="41" coveredstatements="28" conditionals="10" coveredconditionals="2" methods="23" coveredmethods="15" elements="74" coveredelements="45" complexity="0" loc="41" ncloc="41" packages="1" files="3" classes="3"/>
     <file name="Invitacion.js" path="F:\Repositorio\Express.js-API-and-Postman-Tests-1\backend\models\Invitacion.js">
-      <metrics statements="17" coveredstatements="1" conditionals="5" coveredconditionals="0" methods="9" coveredmethods="0"/>
-      <line num="4" count="0" type="stmt"/>
-      <line num="5" count="0" type="stmt"/>
-      <line num="6" count="0" type="stmt"/>
-      <line num="7" count="0" type="stmt"/>
-      <line num="11" count="0" type="stmt"/>
-      <line num="15" count="0" type="stmt"/>
-      <line num="19" count="0" type="stmt"/>
-      <line num="23" count="0" type="stmt"/>
+      <metrics statements="17" coveredstatements="9" conditionals="5" coveredconditionals="0" methods="9" coveredmethods="5"/>
+      <line num="4" count="1" type="stmt"/>
+      <line num="5" count="1" type="stmt"/>
+      <line num="6" count="1" type="stmt"/>
+      <line num="7" count="1" type="stmt"/>
+      <line num="11" count="1" type="stmt"/>
+      <line num="15" count="1" type="stmt"/>
+      <line num="19" count="1" type="stmt"/>
+      <line num="23" count="1" type="stmt"/>
       <line num="27" count="0" type="stmt"/>
       <line num="31" count="0" type="cond" truecount="0" falsecount="2"/>
       <line num="32" count="0" type="stmt"/>
@@ -20,7 +20,7 @@
       <line num="39" count="0" type="stmt"/>
       <line num="41" count="0" type="stmt"/>
       <line num="45" count="0" type="stmt"/>
-      <line num="54" count="1" type="stmt"/>
+      <line num="54" count="2" type="stmt"/>
     </file>
     <file name="Mesa.js" path="F:\Repositorio\Express.js-API-and-Postman-Tests-1\backend\models\Mesa.js">
       <metrics statements="16" coveredstatements="16" conditionals="3" coveredconditionals="2" methods="9" coveredmethods="9"/>

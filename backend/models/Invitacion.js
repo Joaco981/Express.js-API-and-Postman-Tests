@@ -1,28 +1,20 @@
+const Mesa = require('../models/Mesa');
+
 // Clase Invitacion: se asigna a un profesor con estado pendiente/aceptado/rechazado
 class Invitacion {
-    constructor(id, sugerido, materia, estado = 'pendiente') {
-        this._id = id;
-        this._sugerido = sugerido;
-        this._materia = materia;
+    constructor(mesa, estado = 'pendiente') {
+        this._mesa = mesa;
         this._estado = estado;
     }
 
-    get id() {
-        return this._id;
-    }
-
-    get sugerido() {
-        return this._sugerido;
-    }
-
-    get materia() {
-        return this._materia;
-    }
-
+    get mesa() {
+        return this._mesa;
+      }
+    
     get estado() {
         return this._estado;
-      }
-      
+    }
+
     set estado(nuevoEstado) {
         this._estado = nuevoEstado;
     }
@@ -43,9 +35,7 @@ class Invitacion {
 
     toJSON() {
         return {
-            id: this._id,
-            sugerido: this._sugerido,
-            materia: this._materia,
+            mesa: this._mesa,
             estado: this._estado
         };
     }

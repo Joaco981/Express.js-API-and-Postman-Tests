@@ -2,6 +2,8 @@
 const Invitacion = require('../models/Invitacion');
 
 const Invitaciones = [
+  // Invitaciones formato
+  // new Invitacion(id, titular, vocal , materia, estado),
   new Invitacion(4, 'Jose', 'Ing en software I', 'pendiente'),
   new Invitacion(5, 'Gilda', 'Paradigmas II', 'pendiente'),
   new Invitacion(6, 'Jose', 'Sistemas Operativos', 'pendiente'),
