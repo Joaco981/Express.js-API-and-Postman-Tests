@@ -1,28 +1,22 @@
 // Clase Profesor: representa a un docente del sistema
 class Profesor {
-    constructor(nombre) {
+    constructor(nombre, legajo) {
         this._nombre = nombre;
-        this._materias = [];
+        this._legajo = legajo;
     }
 
     get nombre() {
         return this._nombre;
     }
 
-    get materias() {
-        return this._materias;
-    }
-
-    agregarMateria(materia) {
-        if (!this._materias.includes(materia)) {
-            this._materias.push(materia);
-        }
+    get legajo() {
+        return this._legajo
     }
 
     toJSON() {
         return {
             nombre: this._nombre,
-            materias: this._materias
+            legajo: this._legajo
         };
     }
 }

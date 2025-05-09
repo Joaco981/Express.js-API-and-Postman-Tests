@@ -1,142 +1,138 @@
 <template>
-    <div class="dashboard">
-      <h2>Bienvenido, {{ usuarioActual.nombre }}</h2>
+  <div class="dashboard">
+    <h2>Bienvenido, {{ usuarioActual.nombre }}</h2>
+
+    <div v-if="mesasAsignadas.length > 0">
       <h3>Mesas de Examen:</h3>
-  
       <ul>
         <li v-for="mesa in mesasAsignadas" :key="mesa.id">
           <strong>{{ mesa.materia }}</strong> - {{ mesa.fecha }}<br />
           Tu rol: <strong>{{ obtenerRol(mesa) }}</strong><br />
-          {{ obtenerRol(mesa) === 'titular' ? 'Ayudante' : 'Titular' }}:
-          <em>{{ obtenerOtroNombre(mesa) }}</em><br/>
+          {{ obtenerRol(mesa) === 'titular' ? 'Vocal' : 'Titular' }}:
+          <em>{{ obtenerOtroNombre(mesa) }}</em><br />
           <strong>Alumnos:</strong>
-
           <ul>
             <li v-for="alumno in mesa.alumnos" :key="alumno">{{ alumno }}</li>
           </ul>
         </li>
       </ul>
-      <h3>Invitaciones:</h3>
-        <ul>
-          <li v-for="inv in invitaciones" :key="inv.id">
-            <strong>{{ inv.materia }}</strong> - {{ inv.fecha }}<br />
-            Tu rol propuesto: <strong>{{ inv.titular === usuarioActual.nombre ? 'titular' : 'ayudante' }}</strong><br />
-            El otro rol: 
-            <em>{{ inv.titular === usuarioActual.nombre ? inv.ayudante || 'Sin asignar' : inv.titular || 'Sin asignar' }}</em><br />
-            Estado: <strong>{{ inv.estado }}</strong><br />
-            
-            <button 
-              @click="aceptarInvitacion(inv.id)" 
-              :disabled="inv.estado !== 'pendiente'"
-            >Aceptar</button>
-            
-            <button 
-              @click="rechazarInvitacion(inv.id)" 
-              :disabled="inv.estado !== 'pendiente'"
-            >Rechazar</button>
-          </li>
-        </ul>
-
-
     </div>
-  </template>
-  
-  <script>
-  import AuthService from '../service/SingletonAuthService';
-  const authService = AuthService.getInstance();  
-  export default {
-    data() {
-      return {
-        usuarioActual: {
-          nombre: "Invitado"
-        },
-        mesas: [],
-        invitaciones: []
 
-      };
+    <h3>Invitaciones:</h3>
+    <ul>
+      <li v-for="inv in invitaciones" :key="inv.mesa.id">
+        <strong>{{ inv.mesa.materia }}</strong> - {{ inv.mesa.fecha }}<br />
+        Tu rol propuesto:
+        <strong>{{ inv.mesa.titular.nombre === usuarioActual.nombre ? 'titular' : 'vocal' }}</strong><br />
+        El otro rol:
+        <em>{{ inv.mesa.titular.nombre === usuarioActual.nombre ? inv.mesa.vocal.nombre : inv.mesa.titular.nombre }}</em><br />
+        Estado: <strong>{{ inv.estado }}</strong><br />
+
+        <button 
+          @click="aceptarInvitacion(inv.mesa.id)" 
+          :disabled="inv.estado !== 'pendiente'"
+        >Aceptar</button>
+
+        <button 
+          @click="rechazarInvitacion(inv.mesa.id)" 
+          :disabled="inv.estado !== 'pendiente'"
+        >Rechazar</button>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
+import AuthService from '../service/SingletonAuthService';
+const authService = AuthService.getInstance();
+
+export default {
+  data() {
+    return {
+      usuarioActual: {
+        nombre: "Invitado"
+      },
+      mesas: [],
+      invitaciones: []
+    };
+  },
+
+  mounted() {
+    const nombre = authService.getUsuarioActual();
+    this.usuarioActual.nombre = nombre || "Invitado";
+    this.cargarMesasYInvitaciones();
+  },
+
+  computed: {
+    mesasAsignadas() {
+      // Mostrar solo las mesas donde el usuario participa Y la invitación fue aceptada
+      const aceptadas = this.invitaciones
+        .filter(inv => inv.estado === 'aceptada')
+        .map(inv => inv.mesa.id);
+
+      return this.mesas.filter(
+        mesa =>
+          (mesa.titular.nombre === this.usuarioActual.nombre ||
+           mesa.vocal.nombre === this.usuarioActual.nombre) &&
+          aceptadas.includes(mesa.id)
+      );
+    }
+  },
+
+  methods: {
+    obtenerRol(mesa) {
+      return mesa.titular.nombre === this.usuarioActual.nombre ? 'titular' : 'vocal';
     },
-    mounted() {
-      const nombre = authService.getUsuarioActual();
-      this.usuarioActual.nombre = nombre || "Invitado";
+
+    obtenerOtroNombre(mesa) {
+      return mesa.titular.nombre === this.usuarioActual.nombre
+        ? mesa.vocal.nombre
+        : mesa.titular.nombre;
+    },
+
+    aceptarInvitacion(id) {
+      fetch('http://localhost:3000/api/invitaciones/aceptar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, usuario: this.usuarioActual.nombre })
+      })
+        .then(() => {
+          this.cargarMesasYInvitaciones();
+        });
+    },
+
+    rechazarInvitacion(id) {
+      fetch('http://localhost:3000/api/invitaciones/rechazar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, usuario: this.usuarioActual.nombre })
+      })
+        .then(() => {
+          this.cargarMesasYInvitaciones();
+        });
+    },
+
+    cargarMesasYInvitaciones() {
+      const nombre = this.usuarioActual.nombre;
 
       fetch(`http://localhost:3000/api/mesas/${nombre}`)
         .then(res => res.json())
         .then(data => {
           this.mesas = data;
-        })
-        .catch(err => {
-          console.error('Error cargando mesas:', err);
         });
-        fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
+
+      fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
         .then(res => res.json())
         .then(data => {
           this.invitaciones = data;
         });
-
-    },
-
-
-    computed: {
-      mesasAsignadas() {
-        return this.mesas.filter(
-          mesa =>
-            mesa.titular === this.usuarioActual.nombre ||
-            mesa.ayudante === this.usuarioActual.nombre
-        );
-      }
-    },
-    methods: {
-      obtenerRol(mesa) {
-        return mesa.titular === this.usuarioActual.nombre ? 'titular' : 'ayudante';
-      },
-      obtenerOtroNombre(mesa) {
-        return mesa.titular === this.usuarioActual.nombre
-          ? mesa.ayudante
-          : mesa.titular;
-      },
-      aceptarInvitacion(id) {
-        fetch('http://localhost:3000/api/invitaciones/aceptar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, usuario: this.usuarioActual.nombre })
-        })
-          .then(() => {
-            this.cargarMesasYInvitaciones();
-          });
-      },
-      rechazarInvitacion(id) {
-        fetch('http://localhost:3000/api/invitaciones/rechazar', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ id, usuario: this.usuarioActual.nombre })
-        })
-          .then(() => {
-            this.cargarMesasYInvitaciones();
-          });
-      },
-      cargarMesasYInvitaciones() {
-        const nombre = this.usuarioActual.nombre;
-        fetch(`http://localhost:3000/api/mesas/${nombre}`)
-          .then(res => res.json())
-          .then(data => {
-            this.mesas = data;
-          });
-
-        fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
-          .then(res => res.json())
-          .then(data => {
-            this.invitaciones = data;
-          });
-      }
-
     }
-
-  };
-  </script>
-  
-  <style scoped>
-  .dashboard {
-    padding: 2rem;
   }
-  </style>
-  
+};
+</script>
+
+<style scoped>
+.dashboard {
+  padding: 2rem;
+}
+</style>
