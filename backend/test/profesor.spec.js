@@ -1,4 +1,4 @@
-const Profesor = require('../backend/models/Profesor');
+const Profesor = require('../models/Profesor');
 
 describe("Clase Profesor", () => {
     test("Crear profesor con nombre y legajo", () => {
