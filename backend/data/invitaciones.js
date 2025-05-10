@@ -1,5 +1,5 @@
 // data/Invitaciones.js
-const Invitacion = require('../models/Invitacion');
+const { Invitacion } = require('../models/Invitacion');
 const Profesor = require('../models/Profesor');
 const Mesa = require('../models/Mesa');
 

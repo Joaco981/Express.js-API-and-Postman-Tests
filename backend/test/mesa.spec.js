@@ -1,5 +1,5 @@
-const Mesa = require('../backend/models/Mesa');
-const Profesor = require('../backend/models/Profesor');
+const Mesa = require('../models/Mesa');
+const Profesor = require('../models/Profesor');
 
 describe("Clase Mesa", () => {
   let mesa;
