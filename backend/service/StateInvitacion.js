@@ -14,7 +14,7 @@ class Pendiente extends StateInvitacion {
   }
 
   rechazar(invitacion, profesor) {
-    invitacion.rechazar(); // ✅ Usa la lógica interna correcta
+    invitacion.rechazar(profesor); // ✅ Usa la lógica interna correcta
   }
 }
 

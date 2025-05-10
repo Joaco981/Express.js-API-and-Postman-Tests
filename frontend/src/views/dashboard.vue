@@ -31,12 +31,12 @@
 
         <button 
           @click="aceptarInvitacion(inv.mesa.id)" 
-          :disabled="inv.estado !== 'pendiente'"
+          :disabled="inv.estados[usuarioActual.nombre] !== 'pendiente'"
         >Aceptar</button>
 
         <button 
           @click="rechazarInvitacion(inv.mesa.id)" 
-          :disabled="inv.estado !== 'pendiente'"
+          :disabled="inv.estados[usuarioActual.nombre] !== 'pendiente'"
         >Rechazar</button>
       </li>
     </ul>
@@ -129,14 +129,22 @@ export default {
     },
 
     calcularEstado(inv) {
+      const miEstado = inv.estados[this.usuarioActual.nombre];
       const estados = Object.values(inv.estados);
       const aceptados = estados.filter(e => e === 'aceptada').length;
       const rechazados = estados.filter(e => e === 'rechazada').length;
 
-      if (rechazados > 0) return "Rechazada ❌";
+      if (miEstado === 'rechazada') return "Rechazaste la invitación ❌";
+
+      if (rechazados > 0 && miEstado === 'aceptada') {
+        return "Aceptaste, pero el otro rechazó. Esperando nuevo profesor...";
+      }
+
       if (aceptados === 2) return "Aceptada ✅";
+
       return `Esperando confirmación (${aceptados}/2)`;
     }
+
 
 
   }

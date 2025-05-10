@@ -107,26 +107,23 @@ app.post('/api/invitaciones/aceptar', (req, res) => {
 app.post('/api/invitaciones/rechazar', (req, res) => {
   const { id, usuario } = req.body;
 
-  const index = invitaciones.findIndex(i =>
+  const invitacion = invitaciones.find(i =>
     i.mesa.id === id &&
-    (i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario) &&
-    i.estado === 'pendiente'
+    (i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario)
   );
 
-  if (index === -1) {
-    return res.status(404).json({ error: 'Invitación no encontrada o ya procesada' });
+  if (!invitacion) {
+    return res.status(404).json({ error: 'Invitación no encontrada' });
   }
 
-  const invitacion = invitaciones[index];
-  const estado = obtenerEstadoInstancia(invitacion.estado);
-
   try {
-    estado.rechazar(invitacion, usuario);
+    invitacion.rechazar(usuario);
     res.json({ success: true });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
 });
+
 
 // Obtener todas las notificaciones
 app.get('/api/notificaciones', (req, res) => {

@@ -34,11 +34,12 @@ class Invitacion {
   }
 
   rechazar(nombreProfesor) {
-    if (this._estados[nombreProfesor] !== 'pendiente') {
-      throw new Error('Ya procesaste esta invitación');
-    }
-    this._estados[nombreProfesor] = 'rechazada';
+  if (this._estados[nombreProfesor] !== 'pendiente') {
+    throw new Error('Ya procesaste esta invitación');
   }
+  this._estados[nombreProfesor] = 'rechazada';
+}
+
 
   toJSON() {
     return {
