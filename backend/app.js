@@ -135,7 +135,9 @@ app.get('/api/notificaciones/:usuario', (req, res) => {
   res.json(notificador.obtenerNotificacionesPorUsuario(req.params.usuario));
 });
 
-console.log("Iniciando servidor...");
-app.listen(port, () => {
-  console.log(`Servidor escuchando en http://localhost:${port}`);
-});
+if (require.main === module) {
+  console.log("Iniciando servidor...");
+  app.listen(port, () => {
+    console.log(`Servidor escuchando en http://localhost:${port}`);
+  });
+}
