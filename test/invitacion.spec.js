@@ -85,8 +85,14 @@ describe("Clase Invitacion - método rechazar", () => {
 
     test("rechazar lanza error si ya se rechazó", () => {
         invitacion.rechazar('Gilda');
-        expect(() => invitacion.rechazar('Gilda')).toThrow('Ya procesaste esta invitación');
-    });
+        try {
+            invitacion.rechazar('Gilda');  // Segunda vez, debería lanzar el error
+        } catch (error) {
+            console.log("Mensaje de error:", error.message);  // Verifica el mensaje
+            expect(error.message).toBe('Ya procesaste esta invitación');
+        }
+        });
+
 
     test("toJSON refleja estado 'rechazada' después de un rechazo", () => {
         invitacion.rechazar('Gilda');

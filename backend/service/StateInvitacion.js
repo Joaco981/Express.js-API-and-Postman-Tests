@@ -1,20 +1,20 @@
 class StateInvitacion {
   aceptar(invitacion, profesor) {
-    throw new Error("Operación no válida en el estado actual");
+    throw new Error("Ya procesaste esta invitación");
   }
 
   rechazar(invitacion, profesor) {
-    throw new Error("Operación no válida en el estado actual");
+    throw new Error("Ya procesaste esta invitación");
   }
 }
 
 class Pendiente extends StateInvitacion {
   aceptar(invitacion, profesor) {
-    invitacion.aceptar(profesor); // ✅ Usa la lógica interna correcta
+    invitacion._aceptar(profesor); // ✅ Usa la lógica interna correcta
   }
 
   rechazar(invitacion, profesor) {
-    invitacion.rechazar(profesor); // ✅ Usa la lógica interna correcta
+    invitacion._rechazar(profesor); // ✅ Usa la lógica interna correcta
   }
 }
 
