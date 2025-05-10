@@ -1,25 +1,42 @@
 class StateInvitacion {
   aceptar(invitacion, profesor) {
-    throw new Error("Operación no válida en el estado actual");
+    throw new Error("Ya procesaste esta invitación");
   }
 
   rechazar(invitacion, profesor) {
-    throw new Error("Operación no válida en el estado actual");
+    throw new Error("Ya procesaste esta invitación");
   }
 }
 
 class Pendiente extends StateInvitacion {
   aceptar(invitacion, profesor) {
-    invitacion.aceptar(profesor); // ✅ Usa la lógica interna correcta
+    invitacion._aceptar(profesor);
   }
 
   rechazar(invitacion, profesor) {
-    invitacion.rechazar(profesor); // ✅ Usa la lógica interna correcta
+    invitacion._rechazar(profesor);
   }
 }
 
-class Aceptada extends StateInvitacion {}
-class Rechazada extends StateInvitacion {}
+class Aceptada extends StateInvitacion {
+  aceptar(invitacion, profesor) {
+    throw new Error("Ya aceptaste esta invitación");
+  }
+
+  rechazar(invitacion, profesor) {
+    invitacion._rechazar(profesor);
+  }
+}
+
+class Rechazada extends StateInvitacion {
+  aceptar(invitacion, profesor) {
+    invitacion._aceptar(profesor);
+  }
+
+  rechazar(invitacion, profesor) {
+    throw new Error("Ya rechazaste esta invitación");
+  }
+}
 
 function obtenerEstadoInstancia(estado) {
   switch (estado) {

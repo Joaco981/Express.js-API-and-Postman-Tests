@@ -69,11 +69,12 @@ app.get('/api/invitaciones', (req, res) => {
 // Obtener invitaciones para un usuario
 app.get('/api/invitaciones/:usuario', (req, res) => {
   const usuario = req.params.usuario;
-  const invitadas = invitaciones.filter(i =>
-    i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario
-  );
+  const invitadas = invitaciones
+    .filter(i => i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario)
+    .map(i => i.toJSON()); // <- FORZAMOS el uso de toJSON
   res.json(invitadas);
 });
+
 
 // Aceptar invitación
 app.post('/api/invitaciones/aceptar', (req, res) => {
@@ -89,11 +90,21 @@ app.post('/api/invitaciones/aceptar', (req, res) => {
   }
 
   try {
+    // Aceptar la invitación para el usuario actual
     invitacion.aceptar(usuario);
 
-    if (invitacion.estado === 'aceptada') {
-      mesas.push(invitacion.mesa);
-      notificador.notificar(invitacion.mesa);
+    const estados = invitacion.estados;
+    const titularAcepto = estados[invitacion.mesa.titular.nombre] === 'aceptada';
+    const vocalAcepto = estados[invitacion.mesa.vocal.nombre] === 'aceptada';
+
+    // Solo si ambos aceptaron, se carga la mesa
+    if (titularAcepto && vocalAcepto) {
+      // Evitamos duplicados
+      const yaExiste = mesas.some(m => m.id === invitacion.mesa.id);
+      if (!yaExiste) {
+        mesas.push(invitacion.mesa);
+        notificador.notificar(invitacion.mesa);
+      }
     }
 
     res.json({ success: true });
@@ -101,6 +112,7 @@ app.post('/api/invitaciones/aceptar', (req, res) => {
     res.status(400).json({ error: e.message });
   }
 });
+
 
 
 // Rechazar invitación
@@ -116,6 +128,12 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
     return res.status(404).json({ error: 'Invitación no encontrada' });
   }
 
+  // Si ya se registró como rechazado, devolvemos éxito silenciosamente
+  const estadoActual = invitacion._estados[usuario];
+  if (estadoActual === 'rechazada') {
+    return res.json({ success: true, message: 'Ya estaba rechazada.' });
+  }
+
   try {
     invitacion.rechazar(usuario);
     res.json({ success: true });
@@ -123,6 +141,7 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
     res.status(400).json({ error: e.message });
   }
 });
+
 
 
 // Obtener todas las notificaciones

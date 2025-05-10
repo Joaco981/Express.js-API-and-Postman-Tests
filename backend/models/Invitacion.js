@@ -1,52 +1,58 @@
+const { obtenerEstadoInstancia } = require('../service/StateInvitacion');
 
 class Invitacion {
-  constructor(mesa, estado = 'pendiente', sugerido, vocal) {
-    this._mesa = mesa;
+  constructor(mesa, estadoInicial = 'pendiente', sugerido, vocal) {
+    this.mesa = mesa;
     this._estados = {
       [mesa.titular.nombre]: 'pendiente',
       [mesa.vocal.nombre]: 'pendiente'
     };
-    this._sugerido = sugerido;
-    this._vocal = vocal;
-  }
-
-  get mesa() {
-    return this._mesa;
   }
 
   get estado() {
-    // Si alguno rechazó, toda la invitación está rechazada
     const estados = Object.values(this._estados);
     if (estados.includes('rechazada')) return 'rechazada';
     if (estados.every(e => e === 'aceptada')) return 'aceptada';
     return 'pendiente';
   }
 
-  getEstadosIndividuos() {
-    return this._estados;
+  aceptar(nombreProfesor) {
+    const estadoActual = this._estados[nombreProfesor];
+    const estado = obtenerEstadoInstancia(estadoActual);
+    estado.aceptar(this, nombreProfesor);
   }
 
-  aceptar(nombreProfesor) {
+  rechazar(nombreProfesor) {
+    const estadoActual = this._estados[nombreProfesor];
+    const estado = obtenerEstadoInstancia(estadoActual);
+    estado.rechazar(this, nombreProfesor);
+  }
+
+  _aceptar(nombreProfesor) {
     if (this._estados[nombreProfesor] !== 'pendiente') {
       throw new Error('Ya procesaste esta invitación');
     }
     this._estados[nombreProfesor] = 'aceptada';
   }
 
-  rechazar(nombreProfesor) {
-  if (this._estados[nombreProfesor] !== 'pendiente') {
-    throw new Error('Ya procesaste esta invitación');
+  _rechazar(nombreProfesor) {
+    if (this._estados[nombreProfesor] !== 'pendiente') {
+      throw new Error('Ya procesaste esta invitación');
+    }
+    this._estados[nombreProfesor] = 'rechazada';
   }
-  this._estados[nombreProfesor] = 'rechazada';
-}
 
+  getEstadosIndividuos() {
+    return this._estados;
+  }
 
   toJSON() {
     return {
-      mesa: this._mesa,
+      mesa: this.mesa,
       estado: this.estado,
       estados: this._estados
     };
   }
 }
-module.exports = { Invitacion };
+
+module.exports = { Invitacion };  // Exportación correcta
