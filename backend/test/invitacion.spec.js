@@ -1,6 +1,6 @@
-const Mesa = require('../backend/models/Mesa');
-const Profesor = require('../backend/models/Profesor');
-const { Invitacion } = require('../backend/models/Invitacion');
+const Mesa = require('../models/Mesa');
+const Profesor = require('../models/Profesor');
+const { Invitacion } = require('../models/Invitacion');
 
 describe("Clase Invitacion", () => {
     let invitacion;
@@ -66,6 +66,7 @@ describe("Clase Invitacion - método aceptar", () => {
     });
 });
 
+
 describe("Clase Invitacion - método rechazar", () => {
     let invitacion;
     let titular,vocal;
@@ -101,3 +102,28 @@ describe("Clase Invitacion - método rechazar", () => {
         });
     });
 });
+
+//Aca se testea que si los dos profesores (vocal y titular) aceptan la invitación, el estado general sea 'aceptada'
+describe("Clase Invitacion - estado final aceptada", () => {
+    let invitacion;
+    let titular, vocal;
+
+    beforeEach(() => {
+        titular = new Profesor('Figueredo', '111');
+        vocal   = new Profesor('Gilda', '222');
+        const mesa = new Mesa(1, 'Algebra', titular, vocal, '01/02/2026', ['Ivan Cabrera', 'Joaquin Flores']);
+        invitacion = new Invitacion(mesa);
+    });
+
+    test("el estado general es 'aceptada' si todos aceptaron", () => {
+        invitacion.aceptar('Figueredo');
+        invitacion.aceptar('Gilda');
+
+        expect(invitacion.estado).toBe('aceptada');
+        expect(invitacion.getEstadosIndividuos()).toEqual({
+            'Figueredo': 'aceptada',
+            'Gilda': 'aceptada'
+        });
+    });
+});
+
