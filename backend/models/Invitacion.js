@@ -7,7 +7,6 @@ class Invitacion {
       [mesa.titular.nombre]: 'pendiente',
       [mesa.vocal.nombre]: 'pendiente'
     };
-    this._estado = obtenerEstadoInstancia(this.estado);
   }
 
   get estado() {
@@ -17,18 +16,16 @@ class Invitacion {
     return 'pendiente';
   }
 
-  actualizarEstado() {
-    this._estado = obtenerEstadoInstancia(this.estado);
-  }
-
   aceptar(nombreProfesor) {
-    this._estado.aceptar(this, nombreProfesor);
-    this.actualizarEstado();
+    const estadoActual = this._estados[nombreProfesor];
+    const estado = obtenerEstadoInstancia(estadoActual);
+    estado.aceptar(this, nombreProfesor);
   }
 
   rechazar(nombreProfesor) {
-    this._estado.rechazar(this, nombreProfesor);
-    this.actualizarEstado();
+    const estadoActual = this._estados[nombreProfesor];
+    const estado = obtenerEstadoInstancia(estadoActual);
+    estado.rechazar(this, nombreProfesor);
   }
 
   _aceptar(nombreProfesor) {
@@ -57,4 +54,5 @@ class Invitacion {
     };
   }
 }
+
 module.exports = { Invitacion };  // Exportación correcta

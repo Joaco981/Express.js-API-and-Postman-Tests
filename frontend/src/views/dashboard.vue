@@ -2,8 +2,8 @@
   <div class="dashboard">
     <h2>Bienvenido, {{ usuarioActual.nombre }}</h2>
 
+    <h3>Mesas de Examen:</h3>
     <div v-if="mesasAsignadas.length > 0">
-      <h3>Mesas de Examen:</h3>
       <ul>
         <li v-for="mesa in mesasAsignadas" :key="mesa.id">
           <strong>{{ mesa.materia }}</strong> - {{ mesa.fecha }}<br />
@@ -17,27 +17,25 @@
         </li>
       </ul>
     </div>
+    <div v-else>
+      <p>No tienes mesas asignadas</p>
+    </div>
 
     <h3>Invitaciones:</h3>
     <ul>
-      <li v-for="inv in invitaciones" :key="inv.mesa.id">
+      <li v-for="inv in invitacionesPendientes" :key="inv.mesa.id">
         <strong>{{ inv.mesa.materia }}</strong> - {{ inv.mesa.fecha }}<br />
         Tu rol propuesto:
         <strong>{{ inv.mesa.titular.nombre === usuarioActual.nombre ? 'titular' : 'vocal' }}</strong><br />
         El otro rol:
         <em>{{ inv.mesa.titular.nombre === usuarioActual.nombre ? inv.mesa.vocal.nombre : inv.mesa.titular.nombre }}</em><br />
-        
+
         Estado: <strong>{{ calcularEstado(inv) }}</strong><br />
 
-        <button 
-          @click="aceptarInvitacion(inv.mesa.id)" 
-          :disabled="inv.estados[usuarioActual.nombre] !== 'pendiente'"
-        >Aceptar</button>
-
-        <button 
-          @click="rechazarInvitacion(inv.mesa.id)" 
-          :disabled="inv.estados[usuarioActual.nombre] !== 'pendiente'"
-        >Rechazar</button>
+        <div v-if="puedeAceptarRechazar(inv)">
+          <button @click="aceptarInvitacion(inv.mesa.id)">Aceptar</button>
+          <button @click="rechazarInvitacion(inv.mesa.id)">Rechazar</button>
+        </div>
       </li>
     </ul>
   </div>
@@ -50,9 +48,7 @@ const authService = AuthService.getInstance();
 export default {
   data() {
     return {
-      usuarioActual: {
-        nombre: "Invitado"
-      },
+      usuarioActual: { nombre: "Invitado" },
       mesas: [],
       invitaciones: []
     };
@@ -66,17 +62,22 @@ export default {
 
   computed: {
     mesasAsignadas() {
-    return this.mesas.filter(mesa => {
-      const estados = mesa.estados || {};
-      return (
-        (mesa.titular?.nombre === this.usuarioActual.nombre ||
-          mesa.vocal?.nombre === this.usuarioActual.nombre) &&
-        estados[mesa.titular?.nombre] === 'aceptada' &&
-        estados[mesa.vocal?.nombre] === 'aceptada'
-      );
-    });
-  }
+      return this.mesas.filter(mesa => {
+        const estados = mesa.estados || {};
+        const esTitular = mesa.titular?.nombre === this.usuarioActual.nombre;
+        const esVocal = mesa.vocal?.nombre === this.usuarioActual.nombre;
+        const ambosAceptaron = estados[mesa.titular?.nombre] === 'aceptada' && 
+                               estados[mesa.vocal?.nombre] === 'aceptada';
+        return (esTitular || esVocal) && ambosAceptaron;
+      });
+    },
 
+    invitacionesPendientes() {
+      return this.invitaciones.filter(inv => {
+        const estados = Object.values(inv.estados);
+        return estados.filter(e => e === 'aceptada').length < 2;
+      });
+    }
   },
 
   methods: {
@@ -113,18 +114,39 @@ export default {
     cargarMesasYInvitaciones() {
       const nombre = this.usuarioActual.nombre;
 
-      // Cargar mesas
-      fetch(`http://localhost:3000/api/mesas/${nombre}`)
-        .then(res => res.json())
-        .then(data => {
-          this.mesas = data;
-        });
-
-      // Cargar invitaciones (sin filtrar, así ves también progreso)
       fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
         .then(res => res.json())
         .then(data => {
           this.invitaciones = data;
+
+          const invitacionesAceptadas = data.filter(inv => {
+            const estados = Object.values(inv.estados);
+            return estados.every(e => e === 'aceptada');
+          });
+
+          const mesasAceptadas = invitacionesAceptadas.map(inv => ({
+            id: inv.mesa.id,
+            materia: inv.mesa.materia,
+            fecha: inv.mesa.fecha,
+            titular: inv.mesa.titular,
+            vocal: inv.mesa.vocal,
+            alumnos: inv.mesa.alumnos,
+            estados: inv.estados
+          }));
+
+          fetch(`http://localhost:3000/api/mesas/${nombre}`)
+            .then(res => res.json())
+            .then(mesasExistentes => {
+              const todasLasMesas = [...mesasExistentes];
+
+              mesasAceptadas.forEach(mesaAceptada => {
+                if (!todasLasMesas.some(mesa => mesa.id === mesaAceptada.id)) {
+                  todasLasMesas.push(mesaAceptada);
+                }
+              });
+
+              this.mesas = todasLasMesas;
+            });
         });
     },
 
@@ -135,18 +157,17 @@ export default {
       const rechazados = estados.filter(e => e === 'rechazada').length;
 
       if (miEstado === 'rechazada') return "Rechazaste la invitación ❌";
-
       if (rechazados > 0 && miEstado === 'aceptada') {
         return "Aceptaste, pero el otro rechazó. Esperando nuevo profesor...";
       }
-
       if (aceptados === 2) return "Aceptada ✅";
 
       return `Esperando confirmación (${aceptados}/2)`;
+    },
+
+    puedeAceptarRechazar(inv) {
+      return inv.estados[this.usuarioActual.nombre] === 'pendiente';
     }
-
-
-
   }
 };
 </script>
