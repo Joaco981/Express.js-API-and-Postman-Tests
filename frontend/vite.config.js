@@ -6,32 +6,49 @@ const vue = require('@vitejs/plugin-vue')
 module.exports = defineConfig({
   plugins: [vue(), 
     VitePWA({
+      devOptions: {
+        enabled: true
+      },
             registerType: 'autoUpdate',
             manifest: {
                 name: 'Mi PWA',
                 short_name: 'PWA',
                 description: 'Una aplicación web progresiva con Vue y Vite',
                 theme_color: '#4DBA87',
+                screenshots: [
+                    {
+                        src: 'img/Screenshot1.png',
+                        sizes: '2490x1484',
+                        type: 'image/png',
+                        form_factor: 'wide'
+                    },
+                    {
+                        src: 'img/ScreenshotMobile.png',
+                        sizes: '1960x3194',
+                        type: 'image/png',
+                        form_factor: 'narrow'
+                    }
+                ],
                 icons: [
                   {
-                        src: '/icons/144.png',
-                        sizes: '144x144',
+                        src: 'img/icons/android-chrome-192x192.png',
+                        sizes: '192x192',
                         type: 'image/png',
                     },  
                   {
-                        src: '/icons/512.png',
+                        src: 'img/icons/android-chrome-512x512.png',
                         sizes: '512x512',
                         type: 'image/png',
-                    },
-                    {
-                        src: '/icons/1024.png',
-                        sizes: '1024x1024',
-                        type: 'image/png',
-                    },
+                    }
+        
                 ],
                 start_url: '/',
                 display: 'standalone',
                 background_color: '#ffffff',
+            },
+            workbox: {
+                // Opciones de Workbox para personalizar el Service Worker
+                globPatterns: ['*/.{js,css,html,png,jpg,jpeg,svg}'], // Archivos a cachear
             },
         }),
   ],
@@ -43,4 +60,5 @@ module.exports = defineConfig({
       reportsDirectory: 'coverage'          // opcional, por defecto es "coverage"
     }
   }
+
 })
