@@ -49,8 +49,8 @@ describe("Clase Invitacion - método aceptar", () => {
 
     test("aceptar lanza error si ya se aceptó", () => {
         invitacion.aceptar('Figueredo');
-        expect(() => invitacion.aceptar('Figueredo')).toThrow('Ya procesaste esta invitación');
-    });
+        expect(() => invitacion.aceptar('Figueredo')).toThrow('Ya aceptaste esta invitación');
+      });
 
     test("toJSON refleja estado correctamente", () => {
         invitacion.aceptar('Figueredo');
@@ -87,12 +87,12 @@ describe("Clase Invitacion - método rechazar", () => {
     test("rechazar lanza error si ya se rechazó", () => {
         invitacion.rechazar('Gilda');
         try {
-            invitacion.rechazar('Gilda');  // Segunda vez, debería lanzar el error
+          invitacion.rechazar('Gilda'); // Segunda vez, debería lanzar el error
         } catch (error) {
-            console.log("Mensaje de error:", error.message);  // Verifica el mensaje
-            expect(error.message).toBe('Ya procesaste esta invitación');
+          console.log("Mensaje de error:", error.message);  // Verifica el mensaje
+          expect(error.message).toBe('Ya rechazaste esta invitación');
         }
-        });
+      });
 
 
     test("toJSON refleja estado 'rechazada' después de un rechazo", () => {
