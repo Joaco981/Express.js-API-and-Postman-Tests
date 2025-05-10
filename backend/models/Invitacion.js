@@ -1,45 +1,51 @@
-const Mesa = require('../models/Mesa');
 
-// Clase Invitacion: se asigna a un profesor con estado pendiente/aceptado/rechazado
 class Invitacion {
+  constructor(mesa, estado = 'pendiente', sugerido, vocal) {
+    this._mesa = mesa;
+    this._estados = {
+      [mesa.titular.nombre]: 'pendiente',
+      [mesa.vocal.nombre]: 'pendiente'
+    };
+    this._sugerido = sugerido;
+    this._vocal = vocal;
+  }
 
-    constructor(mesa, estado = 'pendiente') {
-        this._mesa = mesa;
-        this._estado = estado;
-    }
+  get mesa() {
+    return this._mesa;
+  }
 
-    get mesa() {
-        return this._mesa;
-      }
-    
-    get estado() {
-        return this._estado;
-    }
+  get estado() {
+    // Si alguno rechazó, toda la invitación está rechazada
+    const estados = Object.values(this._estados);
+    if (estados.includes('rechazada')) return 'rechazada';
+    if (estados.every(e => e === 'aceptada')) return 'aceptada';
+    return 'pendiente';
+  }
 
-    set estado(nuevoEstado) {
-        this._estado = nuevoEstado;
-    }
+  getEstadosIndividuos() {
+    return this._estados;
+  }
 
-    aceptar() {
-        if (this._estado !== 'pendiente') {
-            throw new Error('Solo se puede aceptar una invitación pendiente');
-        }
-        this._estado = 'aceptada';
+  aceptar(nombreProfesor) {
+    if (this._estados[nombreProfesor] !== 'pendiente') {
+      throw new Error('Ya procesaste esta invitación');
     }
+    this._estados[nombreProfesor] = 'aceptada';
+  }
 
-    rechazar() {
-        if (this._estado !== 'pendiente') {
-            throw new Error('Solo se puede rechazar una invitación pendiente');
-        }
-        this._estado = 'rechazada';
+  rechazar(nombreProfesor) {
+    if (this._estados[nombreProfesor] !== 'pendiente') {
+      throw new Error('Ya procesaste esta invitación');
     }
+    this._estados[nombreProfesor] = 'rechazada';
+  }
 
-    toJSON() {
-        return {
-            mesa: this._mesa,
-            estado: this._estado
-        };
-    }
+  toJSON() {
+    return {
+      mesa: this._mesa,
+      estado: this.estado,
+      estados: this._estados
+    };
+  }
 }
-
-module.exports = Invitacion;
+module.exports = { Invitacion };

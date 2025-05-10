@@ -26,7 +26,8 @@
         <strong>{{ inv.mesa.titular.nombre === usuarioActual.nombre ? 'titular' : 'vocal' }}</strong><br />
         El otro rol:
         <em>{{ inv.mesa.titular.nombre === usuarioActual.nombre ? inv.mesa.vocal.nombre : inv.mesa.titular.nombre }}</em><br />
-        Estado: <strong>{{ inv.estado }}</strong><br />
+        
+        Estado: <strong>{{ calcularEstado(inv) }}</strong><br />
 
         <button 
           @click="aceptarInvitacion(inv.mesa.id)" 
@@ -65,29 +66,28 @@ export default {
 
   computed: {
     mesasAsignadas() {
-      // Mostrar solo las mesas donde el usuario participa Y la invitación fue aceptada
-      const aceptadas = this.invitaciones
-        .filter(inv => inv.estado === 'aceptada')
-        .map(inv => inv.mesa.id);
-
-      return this.mesas.filter(
-        mesa =>
-          (mesa.titular.nombre === this.usuarioActual.nombre ||
-           mesa.vocal.nombre === this.usuarioActual.nombre) &&
-          aceptadas.includes(mesa.id)
+    return this.mesas.filter(mesa => {
+      const estados = mesa.estados || {};
+      return (
+        (mesa.titular?.nombre === this.usuarioActual.nombre ||
+          mesa.vocal?.nombre === this.usuarioActual.nombre) &&
+        estados[mesa.titular?.nombre] === 'aceptada' &&
+        estados[mesa.vocal?.nombre] === 'aceptada'
       );
-    }
+    });
+  }
+
   },
 
   methods: {
     obtenerRol(mesa) {
-      return mesa.titular.nombre === this.usuarioActual.nombre ? 'titular' : 'vocal';
+      return mesa.titular?.nombre === this.usuarioActual.nombre ? 'titular' : 'vocal';
     },
 
     obtenerOtroNombre(mesa) {
-      return mesa.titular.nombre === this.usuarioActual.nombre
-        ? mesa.vocal.nombre
-        : mesa.titular.nombre;
+      return mesa.titular?.nombre === this.usuarioActual.nombre
+        ? mesa.vocal?.nombre
+        : mesa.titular?.nombre;
     },
 
     aceptarInvitacion(id) {
@@ -95,10 +95,9 @@ export default {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, usuario: this.usuarioActual.nombre })
-      })
-        .then(() => {
-          this.cargarMesasYInvitaciones();
-        });
+      }).then(() => {
+        this.cargarMesasYInvitaciones();
+      });
     },
 
     rechazarInvitacion(id) {
@@ -106,27 +105,40 @@ export default {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, usuario: this.usuarioActual.nombre })
-      })
-        .then(() => {
-          this.cargarMesasYInvitaciones();
-        });
+      }).then(() => {
+        this.cargarMesasYInvitaciones();
+      });
     },
 
     cargarMesasYInvitaciones() {
       const nombre = this.usuarioActual.nombre;
 
+      // Cargar mesas
       fetch(`http://localhost:3000/api/mesas/${nombre}`)
         .then(res => res.json())
         .then(data => {
           this.mesas = data;
         });
 
+      // Cargar invitaciones (sin filtrar, así ves también progreso)
       fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
         .then(res => res.json())
         .then(data => {
           this.invitaciones = data;
         });
+    },
+
+    calcularEstado(inv) {
+      const estados = Object.values(inv.estados);
+      const aceptados = estados.filter(e => e === 'aceptada').length;
+      const rechazados = estados.filter(e => e === 'rechazada').length;
+
+      if (rechazados > 0) return "Rechazada ❌";
+      if (aceptados === 2) return "Aceptada ✅";
+      return `Esperando confirmación (${aceptados}/2)`;
     }
+
+
   }
 };
 </script>

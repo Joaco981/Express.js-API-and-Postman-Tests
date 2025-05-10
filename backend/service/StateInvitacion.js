@@ -1,22 +1,20 @@
-// backend/service/State.js
-
 class StateInvitacion {
-  aceptar(invitacion, usuario) {
+  aceptar(invitacion, profesor) {
     throw new Error("Operación no válida en el estado actual");
   }
 
-  rechazar(invitacion, usuario) {
+  rechazar(invitacion, profesor) {
     throw new Error("Operación no válida en el estado actual");
   }
 }
 
 class Pendiente extends StateInvitacion {
-  aceptar(invitacion, usuario) {
-    invitacion.estado = 'aceptada';
+  aceptar(invitacion, profesor) {
+    invitacion.aceptar(profesor); // ✅ Usa la lógica interna correcta
   }
 
-  rechazar(invitacion, usuario) {
-    invitacion.estado = 'rechazada';
+  rechazar(invitacion, profesor) {
+    invitacion.rechazar(); // ✅ Usa la lógica interna correcta
   }
 }
 

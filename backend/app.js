@@ -4,12 +4,9 @@ const app = express();
 const port = 3000;
 
 const { Invitaciones: invitaciones } = require('./data/invitaciones');
-console.log("Invitaciones cargadas:", invitaciones);
-
-const { obtenerEstadoInstancia } = require('./service/StateInvitacion');
-
 const { mesas } = require('./data/mesas');
 const profesores = require('./data/profesores');
+const { obtenerEstadoInstancia } = require('./service/StateInvitacion');
 const Notificador = require('./models/Notificador.js');
 
 const notificador = new Notificador(profesores);
@@ -17,6 +14,9 @@ const notificador = new Notificador(profesores);
 app.use(cors());
 app.use(express.json());
 
+console.log("Invitaciones cargadas:", invitaciones);
+
+// Home
 app.get('/', (req, res) => {
   res.send('Bienvenidos al Sistema de Notificaciones UCP :D');
 });
@@ -29,7 +29,7 @@ app.post('/api/auth/login', (req, res) => {
   res.status(401).json({ error: 'Credenciales inválidas' });
 });
 
-// Obtener mesas por usuario (titular o vocal)
+// Obtener mesas por usuario
 app.get('/api/mesas/:usuario', (req, res) => {
   const usuario = req.params.usuario;
   const asignadas = mesas.filter(m =>
@@ -38,7 +38,7 @@ app.get('/api/mesas/:usuario', (req, res) => {
   res.json(asignadas);
 });
 
-// Obtener TODAS las mesas
+// Obtener todas las mesas
 app.get('/api/mesas', (req, res) => {
   res.json(mesas);
 });
@@ -48,15 +48,14 @@ app.get('/api/profesores', (req, res) => {
   res.json(profesores);
 });
 
-// Obtener profesor segun su nombre
+// Obtener profesor por nombre
 app.get('/api/profesores/:nombre', (req, res) => {
   const nombreBuscado = req.params.nombre.toLowerCase();
-
-  const listaProfesores = Object.values(profesores); // obtenemos [Profesor, Profesor]
+  const listaProfesores = Object.values(profesores);
   const profesor = listaProfesores.find(p => p.nombre.toLowerCase() === nombreBuscado);
 
   if (profesor) {
-    res.json(profesor); // usa .toJSON automáticamente si lo tenés en la clase
+    res.json(profesor);
   } else {
     res.status(404).json({ error: 'Profesor no encontrado' });
   }
@@ -67,14 +66,12 @@ app.get('/api/invitaciones', (req, res) => {
   res.json(invitaciones);
 });
 
-// Obtener invitaciones para un usuario (titular o vocal)
+// Obtener invitaciones para un usuario
 app.get('/api/invitaciones/:usuario', (req, res) => {
-  const { usuario } = req.params;
-
+  const usuario = req.params.usuario;
   const invitadas = invitaciones.filter(i =>
     i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario
   );
-
   res.json(invitadas);
 });
 
@@ -82,27 +79,29 @@ app.get('/api/invitaciones/:usuario', (req, res) => {
 app.post('/api/invitaciones/aceptar', (req, res) => {
   const { id, usuario } = req.body;
 
-  const index = invitaciones.findIndex(i =>
+  const invitacion = invitaciones.find(i =>
     i.mesa.id === id &&
-    (i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario) &&
-    i.estado === 'pendiente'
+    (i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario)
   );
 
-  if (index === -1) {
-    return res.status(404).json({ error: 'Invitación no encontrada o ya procesada' });
+  if (!invitacion) {
+    return res.status(404).json({ error: 'Invitación no encontrada' });
   }
 
-  const invitacion = invitaciones[index];
-  const estado = obtenerEstadoInstancia(invitacion.estado);
-
   try {
-    estado.aceptar(invitacion, usuario); //solo llamás al método
-    mesas.push(invitacion.mesa);
-    res.json({ success: true, mesa: invitacion.mesa });
+    invitacion.aceptar(usuario);
+
+    if (invitacion.estado === 'aceptada') {
+      mesas.push(invitacion.mesa);
+      notificador.notificar(invitacion.mesa);
+    }
+
+    res.json({ success: true });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
 });
+
 
 // Rechazar invitación
 app.post('/api/invitaciones/rechazar', (req, res) => {
@@ -122,18 +121,19 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
   const estado = obtenerEstadoInstancia(invitacion.estado);
 
   try {
-    estado.rechazar(invitacion, usuario); // solo llamás al método
+    estado.rechazar(invitacion, usuario);
     res.json({ success: true });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
 });
-// Todas las notificaciones
+
+// Obtener todas las notificaciones
 app.get('/api/notificaciones', (req, res) => {
   res.json(notificador.obtenerNotificaciones());
 });
 
-// Notificaciones de un usuario
+// Obtener notificaciones por usuario
 app.get('/api/notificaciones/:usuario', (req, res) => {
   res.json(notificador.obtenerNotificacionesPorUsuario(req.params.usuario));
 });
