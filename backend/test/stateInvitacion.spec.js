@@ -83,6 +83,13 @@ describe('Invitacion Class', () => {
     expect(json.estados[titular.nombre]).toBe('aceptada'); 
   });
 
+  test('intentar rechazar de nuevo en estado rechazada lanza error', () => {
+    invitacion.rechazar(vocal.nombre);
+    expect(invitacion.estado).toBe('rechazada'); 
+
+    expect(() => invitacion.rechazar(vocal.nombre)).toThrow('Ya rechazaste esta invitación');
+  });
+
 });
 
 describe('StateInvitacion Base Class', () => {
@@ -104,3 +111,6 @@ describe('StateInvitacion Base Class', () => {
     }).toThrow('Ya procesaste esta invitación');
   });
 });
+
+
+

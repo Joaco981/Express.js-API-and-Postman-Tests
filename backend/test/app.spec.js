@@ -1,6 +1,7 @@
+const { Invitaciones } = require('../data/Invitaciones');
+//
 const request = require('supertest');
 const app = require('../app'); // tu archivo app.js debe exportar `app`
-
 
 describe('API', () => {
 
@@ -79,6 +80,13 @@ describe('API', () => {
         expect(res.body).toEqual({ nombre: "Gilda", legajo: "67890" });
     });
 
+    //Se testea el get profesor filtrado por nombre no existente
+    test("GET /api/profesores/:nombre", async () => {
+        const res = await request(app).get('/api/profesores/Pepe');
+        expect(res.statusCode).toBe(404);
+        expect(res.body).toEqual({ error: 'Profesor no encontrado' });
+    });
+
     //Se testea el get de invitaciones
     test("GET /api/invitaciones", async () => {
         const res = await request(app).get('/api/invitaciones');
@@ -104,7 +112,7 @@ describe('API', () => {
     });
 
     //Se testea el get de invitaciones filtrado por profesor
-    test("GET /api/invitaciones/:profesor", async () => {
+    test("GET /api/invitaciones/:usuario", async () => {
         const res = await request(app).get('/api/invitaciones/Gilda');
         expect(res.statusCode).toBe(200);
         expect(Array.isArray(res.body)).toBe(true);
@@ -125,5 +133,50 @@ describe('API', () => {
             }
         });
     });
-
 });
+
+//Test para aceptar de forma individual y general
+describe("POST /api/invitaciones/aceptar", () => {
+
+    //Se testea el post de aceptar individual
+    test("cambia el estado individual a aceptada para el usuario", async () => {
+      const res = await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Gilda" });
+
+      // Confirmamos que el estado de Gilda en mesa1 haya cambiado
+      const invitacion = Invitaciones.find(i => i.mesa.id === 4);
+      expect(invitacion.getEstadosIndividuos()).toEqual({
+        'Gilda': 'aceptada',
+        'Jose': 'pendiente'
+      });
+
+      //El estado general de le mesa sigue siendo pendente pq falta Jose
+      expect(invitacion.estado).toBe('pendiente'); 
+    });
+
+    //Se testea el post de forma general
+    test("cambia el estado general a aceptada, ambos aceptan la invitacion", async () => {
+
+        //Primero acepta Gilda
+        await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Gilda" });
+
+        //Luego acepta Jose
+        const res = await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Jose" });
+        
+        const invitacion = Invitaciones.find(i => i.mesa.id === 4);
+        expect(invitacion.getEstadosIndividuos()).toEqual({
+            'Gilda': 'aceptada',
+            'Jose': 'aceptada'
+        });
+        //El estado general de la mesa pasa a aceptada porq los dos aceptaron
+        expect(invitacion.estado).toBe('aceptada');
+    });
+
+    //Test de que no se encuentre la mesa, es decir que el id sea incorrecto o el profesor
+    test("POST /api/invitaciones/aceptar", async () => {
+        const res = await request(app).post('/api/invitaciones/aceptar').send({ id: 10, usuario: "Gilda" });
+        expect(res.statusCode).toBe(404);
+        expect(res.body).toEqual({ error: 'Invitación no encontrada' });
+    });    
+});
+    
+

@@ -1,4 +1,20 @@
 const ConsolaStrategyNotification = require('../service/ConsolaStrategyNotification');
+const StrategyNotification = require('../service/StrategyNotification');
+
+describe('StrategyNotification Base Class', () => {
+  let strategyBase;
+
+  beforeEach(() => {
+    strategyBase = new StrategyNotification();
+  });
+
+  test('el método notificar de la clase base lanza un error si no es implementado', () => {
+    expect(() => {
+      strategyBase.notificar('Nombre Profesor', 'Materia', 'Fecha', 'Rol', 'Otro Profesor', 'Rol Otro Profesor');
+    }).toThrow('El método notificar debe ser implementado por las clases hijas');
+  });
+});
+
 
 describe('ConsolaStrategyNotification', () => {
   let consoleSpy;
