@@ -1,7 +1,7 @@
 const { obtenerEstadoInstancia } = require('../service/StateInvitacion');
 
 class Invitacion {
-  constructor(mesa, estadoInicial = 'pendiente', sugerido, vocal) {
+  constructor(mesa, estadoInicial = 'pendiente', titular, vocal) {
     this.mesa = mesa;
     this._estados = {
       [mesa.titular.nombre]: 'pendiente',
@@ -28,6 +28,7 @@ class Invitacion {
     estado.rechazar(this, nombreProfesor);
   }
 
+  //Que el profesor acepte la invitación
   _aceptar(nombreProfesor) {
     if (this._estados[nombreProfesor] !== 'pendiente') {
       throw new Error('Ya procesaste esta invitación');
@@ -35,6 +36,7 @@ class Invitacion {
     this._estados[nombreProfesor] = 'aceptada';
   }
 
+  //Que el profesor rechace la invitación
   _rechazar(nombreProfesor) {
     if (this._estados[nombreProfesor] !== 'pendiente') {
       throw new Error('Ya procesaste esta invitación');
