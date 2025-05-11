@@ -111,6 +111,67 @@ describe('StateInvitacion Base Class', () => {
     }).toThrow('Ya procesaste esta invitación');
   });
 });
+describe('Estado Pendiente', () => {
+  let mesa, invitacion;
+
+  beforeEach(() => {
+    mesa = {
+      titular: { nombre: 'Jose' },
+      vocal: { nombre: 'Gilda' }
+    };
+    invitacion = new Invitacion(mesa, 'pendiente', mesa.titular, mesa.vocal);
+  });
+
+  test('aceptar desde pendiente cambia el estado a aceptada para ese profesor', () => {
+    invitacion.aceptar('Jose');
+    expect(invitacion.getEstadosIndividuos()['Jose']).toBe('aceptada');
+  });
+
+  test('rechazar desde pendiente cambia el estado a rechazada para ese profesor', () => {
+    invitacion.rechazar('Gilda');
+    expect(invitacion.getEstadosIndividuos()['Gilda']).toBe('rechazada');
+  });
+});
+
+describe('Estado Aceptada', () => {
+  let mesa, invitacion;
+
+  beforeEach(() => {
+    mesa = {
+      titular: { nombre: 'Jose' },
+      vocal: { nombre: 'Gilda' }
+    };
+    invitacion = new Invitacion(mesa, 'pendiente', mesa.titular, mesa.vocal);
+    invitacion.aceptar('Jose');
+  });
+
+  test('aceptar de nuevo lanza error "Ya aceptaste esta invitación"', () => {
+    expect(() => invitacion.aceptar('Jose')).toThrow('Ya aceptaste esta invitación');
+  });
+
+  test('rechazar desde aceptada lanza error', () => {
+    expect(() => invitacion.rechazar('Jose')).toThrow('Ya procesaste esta invitación');
+  });
+});
 
 
+describe('Estado Rechazada', () => {
+  let mesa, invitacion;
 
+  beforeEach(() => {
+    mesa = {
+      titular: { nombre: 'Jose' },
+      vocal: { nombre: 'Gilda' }
+    };
+    invitacion = new Invitacion(mesa, 'pendiente', mesa.titular, mesa.vocal);
+    invitacion.rechazar('Gilda'); 
+  });
+
+  test('aceptar desde rechazada lanza error', () => {
+    expect(() => invitacion.aceptar('Gilda')).toThrow('Ya procesaste esta invitación');
+  });
+
+  test('rechazar de nuevo lanza error', () => {
+    expect(() => invitacion.rechazar('Gilda')).toThrow('Ya rechazaste esta invitación');
+  });
+});

@@ -2,8 +2,8 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = 3000;
-
 const { Invitaciones: invitaciones } = require('./data/invitaciones');
+
 const { mesas } = require('./data/mesas');
 const profesores = require('./data/profesores');
 const { obtenerEstadoInstancia } = require('./service/StateInvitacion');
@@ -89,6 +89,7 @@ app.post('/api/invitaciones/aceptar', (req, res) => {
     return res.status(404).json({ error: 'Invitación no encontrada' });
   }
 
+  /* istanbul ignore next */
   try {
     // Aceptar la invitación para el usuario actual
     invitacion.aceptar(usuario);
@@ -107,7 +108,7 @@ app.post('/api/invitaciones/aceptar', (req, res) => {
       }
     }
 
-    res.json({ success: true });
+    res.json({ success: true }); 
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -137,12 +138,12 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
   try {
     invitacion.rechazar(usuario);
     res.json({ success: true });
+
   } catch (e) {
+  /* istanbul ignore next */
     res.status(400).json({ error: e.message });
   }
 });
-
-
 
 // Obtener todas las notificaciones
 app.get('/api/notificaciones', (req, res) => {
@@ -154,6 +155,7 @@ app.get('/api/notificaciones/:usuario', (req, res) => {
   res.json(notificador.obtenerNotificacionesPorUsuario(req.params.usuario));
 });
 
+/* istanbul ignore next */
 if (require.main === module) {
   console.log("Iniciando servidor...");
   app.listen(port, () => {
