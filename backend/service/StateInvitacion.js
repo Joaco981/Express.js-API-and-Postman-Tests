@@ -48,5 +48,6 @@ function obtenerEstadoInstancia(estado) {
 }
 
 module.exports = {
-  obtenerEstadoInstancia
+  obtenerEstadoInstancia,
+  StateInvitacion
 };

@@ -160,3 +160,5 @@ if (require.main === module) {
     console.log(`Servidor escuchando en http://localhost:${port}`);
   });
 }
+
+module.exports = app;

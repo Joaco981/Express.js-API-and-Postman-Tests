@@ -52,6 +52,12 @@ describe("Clase Invitacion - método aceptar", () => {
         expect(() => invitacion.aceptar('Figueredo')).toThrow('Ya aceptaste esta invitación');
       });
 
+    //Se testea _aceptar 
+    test("_aceptar arroja error al aceptar una invitación ya aceptada", () => {
+        invitacion._aceptar('Figueredo');
+        expect(() => invitacion._aceptar('Figueredo')).toThrow('Ya procesaste esta invitación');
+      });
+
     test("toJSON refleja estado correctamente", () => {
         invitacion.aceptar('Figueredo');
         const json = invitacion.toJSON();
@@ -94,6 +100,11 @@ describe("Clase Invitacion - método rechazar", () => {
         }
       });
 
+    //Se testea _rechazar 
+    test("_rechazar arroja error al rechazar una invitación ya rechazada", () => {
+        invitacion._rechazar('Figueredo');
+        expect(() => invitacion._rechazar('Figueredo')).toThrow('Ya procesaste esta invitación');
+        });  
 
     test("toJSON refleja estado 'rechazada' después de un rechazo", () => {
         invitacion.rechazar('Gilda');
