@@ -11,6 +11,8 @@
     "@vitejs/plugin-vue": "^5.2.3",
     "cors": "^2.8.5",
     "express": "^5.1.0",
+    "express.js-api-and-postman-tests": "file:",
+    "i": "^0.3.7",
     "register-service-worker": "^1.7.2",
     "vue": "^3.5.13",
     "vue-router": "^4.5.1"
