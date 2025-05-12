@@ -39,15 +39,19 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // Obtener mesas por usuario
-/* istanbul ignore next */
 app.get('/api/mesas/:usuario', (req, res) => {
   const usuario = req.params.usuario;
-  const mesasConfirmadas = invitaciones
-    .filter(i =>
-      i.estado === 'confirmada' &&
-      (i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario)
+  const mesasConfirmadas = mesas
+    .filter(m =>
+      m.titular.nombre === usuario || m.vocal.nombre === usuario
     )
-    .map(i => i.toJSON());
+    .map(m => ({
+      ...m,
+      estados: {
+        [m.titular.nombre]: 'aceptada',
+        [m.vocal.nombre]: 'aceptada'
+      }
+    }));
   res.json(mesasConfirmadas);
 });
 
@@ -194,6 +198,24 @@ app.get('/api/notificaciones', (req, res) => {
 // Obtener notificaciones por usuario
 app.get('/api/notificaciones/:usuario', (req, res) => {
   res.json(notificador.obtenerNotificacionesPorUsuario(req.params.usuario));
+});
+
+// Registrar suscripción push
+app.post('/api/notificaciones/registrar', (req, res) => {
+  const { usuario, subscription } = req.body;
+  
+  if (!usuario || !subscription) {
+    return res.status(400).json({ error: 'Faltan datos requeridos' });
+  }
+
+  try {
+    notificador.registrarSuscripcionPush(usuario, subscription);
+    console.log('Suscripción push registrada para:', usuario);
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Error al registrar suscripción push:', error);
+    res.status(500).json({ error: 'Error al registrar la suscripción' });
+  }
 });
 
 /* istanbul ignore next */

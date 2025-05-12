@@ -51,7 +51,8 @@ export default {
       usuarioActual: { nombre: "Invitado" },
       mesas: [],
       invitaciones: [],
-      notificadas: []
+      notificadas: [],
+      apiUrl: 'http://localhost:3000/api'
     };
   },
 
@@ -72,16 +73,21 @@ export default {
   computed: {
     mesasAsignadas() {
       return this.mesas.filter(mesa => {
-        const estados = mesa.estados || {};
         const usuario = this.usuarioActual.nombre.toLowerCase();
         const titular = mesa.titular?.nombre.toLowerCase();
         const vocal = mesa.vocal?.nombre.toLowerCase();
 
         const esTitular = titular === usuario;
         const esVocal = vocal === usuario;
-        const ambosAceptaron = estados[titular] === 'aceptada' && estados[vocal] === 'aceptada';
 
-        return (esTitular || esVocal) && ambosAceptaron;
+        // Si la mesa tiene estados, verificar que ambos aceptaron
+        if (mesa.estados) {
+          const ambosAceptaron = mesa.estados[titular] === 'aceptada' && mesa.estados[vocal] === 'aceptada';
+          return (esTitular || esVocal) && ambosAceptaron;
+        }
+
+        // Si no tiene estados, es una mesa confirmada directamente
+        return esTitular || esVocal;
       });
     },
 
@@ -124,20 +130,41 @@ export default {
       });
     },
 
-    cargarMesasYInvitaciones() {
-      const nombre = this.usuarioActual.nombre;
+    async cargarMesasYInvitaciones() {
+      try {
+        const [invitacionesRes, mesasRes] = await Promise.all([
+          fetch(`${this.apiUrl}/invitaciones/${this.usuarioActual.nombre}`),
+          fetch(`${this.apiUrl}/mesas/${this.usuarioActual.nombre}`)
+        ]);
 
-      fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
-        .then(res => res.json())
-        .then(data => {
-          this.invitaciones = data;
+        if (!invitacionesRes.ok || !mesasRes.ok) {
+          throw new Error('Error al cargar datos');
+        }
+
+        const invitaciones = await invitacionesRes.json();
+        const mesasConfirmadas = await mesasRes.json();
+
+        // Actualizar las invitaciones
+        this.invitaciones = invitaciones;
+
+        // Actualizar las mesas, combinando las mesas confirmadas con las invitaciones pendientes
+        const mesasPendientes = invitaciones
+          .filter(i => i.estado === 'pendiente')
+          .map(i => i.mesa);
+
+        // Combinar mesas confirmadas y pendientes, evitando duplicados
+        const todasLasMesas = [...mesasConfirmadas];
+        mesasPendientes.forEach(mesaPendiente => {
+          if (!todasLasMesas.some(m => m.id === mesaPendiente.id)) {
+            todasLasMesas.push(mesaPendiente);
+          }
         });
 
-      fetch(`http://localhost:3000/api/mesas/${nombre}`)
-        .then(res => res.json())
-        .then(mesasExistentes => {
-          this.mesas = mesasExistentes;
-        });
+        this.mesas = todasLasMesas;
+      } catch (error) {
+        console.error('Error:', error);
+        this.error = 'Error al cargar las mesas e invitaciones';
+      }
     },
 
     calcularEstado(inv) {
@@ -159,13 +186,40 @@ export default {
       return inv.estados[this.usuarioActual.nombre] === 'pendiente';
     },
 
-    pedirPermisoNotificacion() {
+    async pedirPermisoNotificacion() {
       if ('Notification' in window) {
-        Notification.requestPermission().then(permiso => {
-          if (permiso !== 'granted') {
+        try {
+          const permiso = await Notification.requestPermission();
+          if (permiso === 'granted') {
+            // Registrar el service worker
+            const registration = await navigator.serviceWorker.register('/service-worker.js', {
+              scope: '/'
+            });
+            console.log('Service Worker registrado:', registration);
+
+            // Registrar la suscripción en el backend
+            const response = await fetch('http://localhost:3000/api/notificaciones/registrar', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                usuario: this.usuarioActual.nombre,
+                subscription: true // Indicamos que el usuario está suscrito
+              })
+            });
+
+            if (!response.ok) {
+              throw new Error('Error al registrar la suscripción');
+            }
+
+            console.log('Suscripción push registrada exitosamente');
+          } else {
             console.log('Permiso de notificación denegado');
           }
-        });
+        } catch (error) {
+          console.error('Error al configurar notificaciones push:', error);
+        }
+      } else {
+        console.log('Este navegador no soporta notificaciones push');
       }
     },
 
