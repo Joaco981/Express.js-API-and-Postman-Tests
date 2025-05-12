@@ -1,40 +1,53 @@
 // src/service/SingletonAuthService.js
 
 class AuthService {
-  static instance = null;
+  constructor() {
+    if (AuthService._instance) {
+      return AuthService._instance;
+    }
+    AuthService._instance = this;
+    this.baseUrl = 'http://localhost:3000/api';
+  }
 
   static getInstance() {
-    if (!AuthService.instance) {
-      AuthService.instance = new AuthService();
+    if (!AuthService._instance) {
+      AuthService._instance = new AuthService();
     }
-    return AuthService.instance;
+    return AuthService._instance;
   }
 
   async login(username, password) {
     try {
-      const res = await fetch('http://localhost:3000/api/auth/login', {
+      const response = await fetch(`${this.baseUrl}/auth/login`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
       });
 
-      if (!res.ok) return false;
-
-      const data = await res.json();
-      localStorage.setItem('usuario', data.username);
-      return true;
+      if (response.ok) {
+        const data = await response.json();
+        localStorage.setItem('usuario', data.username);
+        return true;
+      }
+      return false;
     } catch (error) {
       console.error('Error en login:', error);
       return false;
     }
   }
 
-  getUsuarioActual() {
-    return localStorage.getItem("usuario");
+  logout() {
+    localStorage.removeItem('usuario');
   }
 
-  logout() {
-    localStorage.removeItem("usuario");
+  isAuthenticated() {
+    return !!localStorage.getItem('usuario');
+  }
+
+  getUsuarioActual() {
+    return localStorage.getItem('usuario');
   }
 }
 

@@ -2,14 +2,23 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const port = 3000;
+require('dotenv').config();
+
 const { Invitaciones: invitaciones } = require('./data/invitaciones');
 
 const { mesas } = require('./data/mesas');
 const profesores = require('./data/profesores');
 const { obtenerEstadoInstancia } = require('./service/StateInvitacion');
-const Notificador = require('./models/Notificador.js');
 
-const notificador = new Notificador(profesores);
+const Notificador = require('./models/Notificador.js');
+const notificador = Notificador.getInstance(profesores);
+const ObserverEmail = require('./service/ObserverEmail.js');
+const emailObserver = new ObserverEmail();
+notificador.addObserver(emailObserver);
+const EmailService = require('./service/EmailService');
+const emailService = new EmailService();
+
+
 
 app.use(cors());
 app.use(express.json());
@@ -31,12 +40,21 @@ app.post('/api/auth/login', (req, res) => {
 
 // Obtener mesas por usuario
 app.get('/api/mesas/:usuario', (req, res) => {
-  const usuario = req.params.usuario;
-  const asignadas = mesas.filter(m =>
-    m.titular.nombre === usuario || m.vocal.nombre === usuario
-  );
+  const usuario = req.params.usuario.toLowerCase();
+
+  const asignadas = mesas.filter(m => {
+    const esTitular = m.titular.nombre.toLowerCase() === usuario;
+    const esVocal = m.vocal.nombre.toLowerCase() === usuario;
+
+    // Solo devolver si no hay una invitación pendiente para esa mesa
+    const invitacion = invitaciones.find(i => i.mesa.id === m.id);
+    const yaConfirmada = !invitacion; // solo si no está en la lista de invitaciones
+    return (esTitular || esVocal) && yaConfirmada;
+  });
+
   res.json(asignadas);
 });
+
 
 // Obtener todas las mesas
 app.get('/api/mesas', (req, res) => {
@@ -77,7 +95,7 @@ app.get('/api/invitaciones/:usuario', (req, res) => {
 
 
 // Aceptar invitación
-app.post('/api/invitaciones/aceptar', (req, res) => {
+app.post('/api/invitaciones/aceptar', async (req, res) => {
   const { id, usuario } = req.body;
 
   const invitacion = invitaciones.find(i =>
@@ -89,26 +107,45 @@ app.post('/api/invitaciones/aceptar', (req, res) => {
     return res.status(404).json({ error: 'Invitación no encontrada' });
   }
 
-  /* istanbul ignore next */
   try {
     // Aceptar la invitación para el usuario actual
     invitacion.aceptar(usuario);
 
-    const estados = invitacion.estados;
+    const estados = invitacion._estados;
     const titularAcepto = estados[invitacion.mesa.titular.nombre] === 'aceptada';
     const vocalAcepto = estados[invitacion.mesa.vocal.nombre] === 'aceptada';
 
-    // Solo si ambos aceptaron, se carga la mesa
+    // Solo si ambos aceptaron, se carga la mesa y se elimina la invitación
     if (titularAcepto && vocalAcepto) {
-      // Evitamos duplicados
       const yaExiste = mesas.some(m => m.id === invitacion.mesa.id);
       if (!yaExiste) {
-        mesas.push(invitacion.mesa);
+        mesas.push({
+          id: invitacion.mesa.id,
+          materia: invitacion.mesa.materia,
+          fecha: invitacion.mesa.fecha,
+          titular: invitacion.mesa.titular,
+          vocal: invitacion.mesa.vocal,
+          alumnos: invitacion.mesa.alumnos
+        });
+        // Eliminar la invitación
+        const invitacionIndex = invitaciones.indexOf(invitacion);
+        if (invitacionIndex !== -1) {
+          invitaciones.splice(invitacionIndex, 1);
+        }
+
         notificador.notificar(invitacion.mesa);
+        const mensaje = `La invitación para la mesa de ${invitacion.mesa.materia} fue confirmada por ambos profesores (${invitacion.mesa.titular.nombre} y ${invitacion.mesa.vocal.nombre}).`;
+        await emailService.sendEmail({
+          to: process.env.EMAIL_DESTINO,
+          subject: 'Confirmación de invitación',
+          html: `<p>${mensaje}</p>`
+        });
+        
+        console.log('Mesa agregada:', invitacion.mesa.id);
       }
     }
 
-    res.json({ success: true }); 
+    res.json({ success: true });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -138,12 +175,11 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
   try {
     invitacion.rechazar(usuario);
     res.json({ success: true });
-
   } catch (e) {
-  /* istanbul ignore next */
     res.status(400).json({ error: e.message });
   }
 });
+
 
 // Obtener todas las notificaciones
 app.get('/api/notificaciones', (req, res) => {

@@ -58,12 +58,18 @@ export default {
     const nombre = authService.getUsuarioActual();
     this.usuarioActual.nombre = nombre || "Invitado";
     this.cargarMesasYInvitaciones();
+    this.pedirPermisoNotificacion();
+
+    // Verifica nuevas confirmaciones cada 10 segundos
+    setInterval(() => {
+      this.verificarNuevasConfirmaciones();
+    }, 10000);
   },
 
   computed: {
     mesasAsignadas() {
       return this.mesas.filter(mesa => {
-        const estados = mesa.estados || {};
+        const estados = mesa._estados || {};
         const esTitular = mesa.titular?.nombre === this.usuarioActual.nombre;
         const esVocal = mesa.vocal?.nombre === this.usuarioActual.nombre;
         const ambosAceptaron = estados[mesa.titular?.nombre] === 'aceptada' && 
@@ -79,6 +85,7 @@ export default {
       });
     }
   },
+
 
   methods: {
     obtenerRol(mesa) {
@@ -114,39 +121,19 @@ export default {
     cargarMesasYInvitaciones() {
       const nombre = this.usuarioActual.nombre;
 
+      // 1. Carga invitaciones pendientes
       fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
         .then(res => res.json())
         .then(data => {
           this.invitaciones = data;
+        });
 
-          const invitacionesAceptadas = data.filter(inv => {
-            const estados = Object.values(inv.estados);
-            return estados.every(e => e === 'aceptada');
-          });
-
-          const mesasAceptadas = invitacionesAceptadas.map(inv => ({
-            id: inv.mesa.id,
-            materia: inv.mesa.materia,
-            fecha: inv.mesa.fecha,
-            titular: inv.mesa.titular,
-            vocal: inv.mesa.vocal,
-            alumnos: inv.mesa.alumnos,
-            estados: inv.estados
-          }));
-
-          fetch(`http://localhost:3000/api/mesas/${nombre}`)
-            .then(res => res.json())
-            .then(mesasExistentes => {
-              const todasLasMesas = [...mesasExistentes];
-
-              mesasAceptadas.forEach(mesaAceptada => {
-                if (!todasLasMesas.some(mesa => mesa.id === mesaAceptada.id)) {
-                  todasLasMesas.push(mesaAceptada);
-                }
-              });
-
-              this.mesas = todasLasMesas;
-            });
+      // 2. Carga mesas de examen (las confirmadas)
+      fetch(`http://localhost:3000/api/mesas/${nombre}`)
+        .then(res => res.json())
+        .then(mesasExistentes => {
+          console.log('Mesas recibidas del backend:', mesasExistentes); // Para depurar
+          this.mesas = mesasExistentes;
         });
     },
 
@@ -167,6 +154,47 @@ export default {
 
     puedeAceptarRechazar(inv) {
       return inv.estados[this.usuarioActual.nombre] === 'pendiente';
+    },
+
+    pedirPermisoNotificacion() {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permiso => {
+          if (permiso !== 'granted') {
+            console.log('Permiso de notificación denegado');
+          }
+        });
+      }
+    },
+
+    verificarNuevasConfirmaciones() {
+      const nombre = this.usuarioActual.nombre;
+
+      fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
+        .then(res => res.json())
+        .then(data => {
+          const nuevasConfirmadas = data.filter(inv => {
+            const estados = Object.values(inv.estados);
+            return estados.every(e => e === 'aceptada') &&
+                   !this.mesas.some(m => m.id === inv.mesa.id);
+          });
+
+          nuevasConfirmadas.forEach(inv => {
+            this.notificarMesaConfirmada(inv.mesa);
+          });
+
+          if (nuevasConfirmadas.length > 0) {
+            this.cargarMesasYInvitaciones();
+          }
+        });
+    },
+
+    notificarMesaConfirmada(mesa) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Invitación Confirmada ✅', {
+          body: `La mesa de ${mesa.materia} fue confirmada para el ${mesa.fecha}.`,
+          icon: '/icon-192x192.png' // Reemplazalo con tu ícono real
+        });
+      }
     }
   }
 };

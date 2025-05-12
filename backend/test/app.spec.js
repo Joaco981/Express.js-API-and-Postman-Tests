@@ -209,19 +209,15 @@ describe("POST /api/invitaciones/aceptar - aceptación completa", () => {
         // Segunda aceptación de Jose
         const res = await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Jose" });
         
-        // Verificar estado de la invitación
+        // Verificar que la invitación ya no existe
         const invitacion = Invitaciones.find(i => i.mesa.id === 4);
-        expect(invitacion.getEstadosIndividuos()).toEqual({
-          Gilda: "aceptada",
-          Jose: "aceptada"
-        });
-        expect(invitacion.estado).toBe("aceptada");
-      
+        expect(invitacion).toBeUndefined();
+
         // Verificar que la mesa fue agregada
-        const mesaAgregada = Invitaciones.find(i => i.mesa.id === 4)?.mesa;
+        const mesaAgregada = mesas.find(m => m.id === 4);
         expect(mesaAgregada).toBeDefined();
         expect(mesaAgregada.materia).toBe("Ing en software I");
-      });
+    });
 
 });
 
@@ -299,8 +295,7 @@ describe("GET /api/notificaciones", () => {
         res.body.forEach(notif => {
             expect(notif).toEqual(
                 expect.objectContaining({
-                    mensaje: expect.any(String),
-                    usuario: usuario
+                    receptor: usuario
                 })
             );
         });
