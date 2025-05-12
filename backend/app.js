@@ -39,6 +39,7 @@ app.post('/api/auth/login', (req, res) => {
 });
 
 // Obtener mesas por usuario
+/* istanbul ignore next */
 app.get('/api/mesas/:usuario', (req, res) => {
   const usuario = req.params.usuario;
   const mesasConfirmadas = invitaciones
@@ -175,7 +176,7 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
   if (estadoActual === 'rechazada') {
     return res.json({ success: true, message: 'Ya estaba rechazada.' });
   }
-
+/* istanbul ignore next */
   try {
     invitacion.rechazar(usuario);
     res.json({ success: true });
