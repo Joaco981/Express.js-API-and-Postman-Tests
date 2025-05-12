@@ -50,7 +50,9 @@ export default {
     return {
       usuarioActual: { nombre: "Invitado" },
       mesas: [],
-      invitaciones: []
+      invitaciones: [],
+      notificadas: []
+
     };
   },
 
@@ -60,16 +62,19 @@ export default {
     this.cargarMesasYInvitaciones();
     this.pedirPermisoNotificacion();
 
-    // Verifica nuevas confirmaciones cada 10 segundos
+    const guardadas = localStorage.getItem('mesasNotificadas');
+    this.notificadas = guardadas ? JSON.parse(guardadas) : [];
+
     setInterval(() => {
       this.verificarNuevasConfirmaciones();
     }, 10000);
   },
 
+
   computed: {
     mesasAsignadas() {
     return this.mesas.filter(mesa => {
-      const estados = mesa._estados || {};
+      const estados = mesa.estados || {}; // <- corregido acá
       const usuario = this.usuarioActual.nombre.toLowerCase();
       const titular = mesa.titular?.nombre.toLowerCase();
       const vocal = mesa.vocal?.nombre.toLowerCase();
@@ -81,6 +86,7 @@ export default {
       return (esTitular || esVocal) && ambosAceptaron;
     });
   },
+
 
 
     invitacionesPendientes() {
@@ -180,11 +186,14 @@ export default {
           const nuevasConfirmadas = data.filter(inv => {
             const estados = Object.values(inv.estados);
             return estados.every(e => e === 'aceptada') &&
-                   !this.mesas.some(m => m.id === inv.mesa.id);
+                  !this.notificadas.includes(inv.mesa.id);
           });
 
           nuevasConfirmadas.forEach(inv => {
             this.notificarMesaConfirmada(inv.mesa);
+            this.notificadas.push(inv.mesa.id); // ← Marcamos como ya notificada
+            localStorage.setItem('mesasNotificadas', JSON.stringify(this.notificadas));
+
           });
 
           if (nuevasConfirmadas.length > 0) {
@@ -192,6 +201,7 @@ export default {
           }
         });
     },
+
 
     notificarMesaConfirmada(mesa) {
       if ('Notification' in window && Notification.permission === 'granted') {

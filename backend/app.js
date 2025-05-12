@@ -40,20 +40,18 @@ app.post('/api/auth/login', (req, res) => {
 
 // Obtener mesas por usuario
 app.get('/api/mesas/:usuario', (req, res) => {
-  const usuario = req.params.usuario.toLowerCase();
-
-  const asignadas = mesas.filter(m => {
-    const esTitular = m.titular.nombre.toLowerCase() === usuario;
-    const esVocal = m.vocal.nombre.toLowerCase() === usuario;
-
-    // Solo devolver si no hay una invitación pendiente para esa mesa
-    const invitacion = invitaciones.find(i => i.mesa.id === m.id);
-    const yaConfirmada = !invitacion; // solo si no está en la lista de invitaciones
-    return (esTitular || esVocal) && yaConfirmada;
-  });
-
-  res.json(asignadas);
+  const usuario = req.params.usuario;
+  const mesasConfirmadas = invitaciones
+    .filter(i =>
+      i.estado === 'confirmada' &&
+      (i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario)
+    )
+    .map(i => i.toJSON());
+  res.json(mesasConfirmadas);
 });
+
+
+
 
 
 // Obtener todas las mesas
@@ -84,14 +82,18 @@ app.get('/api/invitaciones', (req, res) => {
   res.json(invitaciones);
 });
 
-// Obtener invitaciones para un usuario
+// Obtener invitaciones pendientes para un usuario
 app.get('/api/invitaciones/:usuario', (req, res) => {
   const usuario = req.params.usuario;
   const invitadas = invitaciones
-    .filter(i => i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario)
-    .map(i => i.toJSON()); // <- FORZAMOS el uso de toJSON
+    .filter(i =>
+      (i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario) &&
+      i.estado !== 'confirmada'
+    )
+    .map(i => i.toJSON());
   res.json(invitadas);
 });
+
 
 
 // Aceptar invitación
@@ -128,13 +130,12 @@ app.post('/api/invitaciones/aceptar', async (req, res) => {
           fecha: invitacion.mesa.fecha,
           titular: invitacion.mesa.titular,
           vocal: invitacion.mesa.vocal,
-          alumnos: invitacion.mesa.alumnos
+          alumnos: invitacion.mesa.alumnos,
+          _estados: invitacion.mesa._estados
         });
-        // Eliminar la invitación
-        const invitacionIndex = invitaciones.indexOf(invitacion);
-        if (invitacionIndex !== -1) {
-          invitaciones.splice(invitacionIndex, 1);
-        }
+        // Marcar como confirmada (opcional, puedes usarlo como flag explícito)
+        invitacion.estado = 'confirmada';
+
 
         notificador.notificar(invitacion.mesa);
         const mensaje = `La invitación para la mesa de ${invitacion.mesa.materia} fue confirmada por ambos profesores (${invitacion.mesa.titular.nombre} y ${invitacion.mesa.vocal.nombre}).`;
