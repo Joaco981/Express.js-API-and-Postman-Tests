@@ -98,10 +98,13 @@ app.get('/api/invitaciones/:usuario', (req, res) => {
 app.post('/api/invitaciones/aceptar', async (req, res) => {
   const { id, usuario } = req.body;
 
+  const usuarioLower = usuario.toLowerCase();
   const invitacion = invitaciones.find(i =>
     i.mesa.id === id &&
-    (i.mesa.titular.nombre === usuario || i.mesa.vocal.nombre === usuario)
+    (i.mesa.titular.nombre.toLowerCase() === usuarioLower ||
+    i.mesa.vocal.nombre.toLowerCase() === usuarioLower)
   );
+
 
   if (!invitacion) {
     return res.status(404).json({ error: 'Invitación no encontrada' });

@@ -68,15 +68,20 @@ export default {
 
   computed: {
     mesasAsignadas() {
-      return this.mesas.filter(mesa => {
-        const estados = mesa._estados || {};
-        const esTitular = mesa.titular?.nombre === this.usuarioActual.nombre;
-        const esVocal = mesa.vocal?.nombre === this.usuarioActual.nombre;
-        const ambosAceptaron = estados[mesa.titular?.nombre] === 'aceptada' && 
-                               estados[mesa.vocal?.nombre] === 'aceptada';
-        return (esTitular || esVocal) && ambosAceptaron;
-      });
-    },
+    return this.mesas.filter(mesa => {
+      const estados = mesa._estados || {};
+      const usuario = this.usuarioActual.nombre.toLowerCase();
+      const titular = mesa.titular?.nombre.toLowerCase();
+      const vocal = mesa.vocal?.nombre.toLowerCase();
+
+      const esTitular = titular === usuario;
+      const esVocal = vocal === usuario;
+      const ambosAceptaron = estados[titular] === 'aceptada' && estados[vocal] === 'aceptada';
+
+      return (esTitular || esVocal) && ambosAceptaron;
+    });
+  },
+
 
     invitacionesPendientes() {
       return this.invitaciones.filter(inv => {
