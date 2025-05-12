@@ -20,6 +20,7 @@ class Invitacion {
     const estadoActual = this._estados[nombreProfesor];
     const estado = obtenerEstadoInstancia(estadoActual);
     estado.aceptar(this, nombreProfesor);
+    console.log('Estados después de aceptar:', this._estados);
   }
 
   rechazar(nombreProfesor) {

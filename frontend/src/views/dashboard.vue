@@ -50,7 +50,8 @@ export default {
     return {
       usuarioActual: { nombre: "Invitado" },
       mesas: [],
-      invitaciones: []
+      invitaciones: [],
+      notificadas: []
     };
   },
 
@@ -58,16 +59,28 @@ export default {
     const nombre = authService.getUsuarioActual();
     this.usuarioActual.nombre = nombre || "Invitado";
     this.cargarMesasYInvitaciones();
+    this.pedirPermisoNotificacion();
+
+    const guardadas = localStorage.getItem('mesasNotificadas');
+    this.notificadas = guardadas ? JSON.parse(guardadas) : [];
+
+    setInterval(() => {
+      this.verificarNuevasConfirmaciones();
+    }, 10000);
   },
 
   computed: {
     mesasAsignadas() {
       return this.mesas.filter(mesa => {
         const estados = mesa.estados || {};
-        const esTitular = mesa.titular?.nombre === this.usuarioActual.nombre;
-        const esVocal = mesa.vocal?.nombre === this.usuarioActual.nombre;
-        const ambosAceptaron = estados[mesa.titular?.nombre] === 'aceptada' && 
-                               estados[mesa.vocal?.nombre] === 'aceptada';
+        const usuario = this.usuarioActual.nombre.toLowerCase();
+        const titular = mesa.titular?.nombre.toLowerCase();
+        const vocal = mesa.vocal?.nombre.toLowerCase();
+
+        const esTitular = titular === usuario;
+        const esVocal = vocal === usuario;
+        const ambosAceptaron = estados[titular] === 'aceptada' && estados[vocal] === 'aceptada';
+
         return (esTitular || esVocal) && ambosAceptaron;
       });
     },
@@ -118,35 +131,12 @@ export default {
         .then(res => res.json())
         .then(data => {
           this.invitaciones = data;
+        });
 
-          const invitacionesAceptadas = data.filter(inv => {
-            const estados = Object.values(inv.estados);
-            return estados.every(e => e === 'aceptada');
-          });
-
-          const mesasAceptadas = invitacionesAceptadas.map(inv => ({
-            id: inv.mesa.id,
-            materia: inv.mesa.materia,
-            fecha: inv.mesa.fecha,
-            titular: inv.mesa.titular,
-            vocal: inv.mesa.vocal,
-            alumnos: inv.mesa.alumnos,
-            estados: inv.estados
-          }));
-
-          fetch(`http://localhost:3000/api/mesas/${nombre}`)
-            .then(res => res.json())
-            .then(mesasExistentes => {
-              const todasLasMesas = [...mesasExistentes];
-
-              mesasAceptadas.forEach(mesaAceptada => {
-                if (!todasLasMesas.some(mesa => mesa.id === mesaAceptada.id)) {
-                  todasLasMesas.push(mesaAceptada);
-                }
-              });
-
-              this.mesas = todasLasMesas;
-            });
+      fetch(`http://localhost:3000/api/mesas/${nombre}`)
+        .then(res => res.json())
+        .then(mesasExistentes => {
+          this.mesas = mesasExistentes;
         });
     },
 
@@ -167,6 +157,49 @@ export default {
 
     puedeAceptarRechazar(inv) {
       return inv.estados[this.usuarioActual.nombre] === 'pendiente';
+    },
+
+    pedirPermisoNotificacion() {
+      if ('Notification' in window) {
+        Notification.requestPermission().then(permiso => {
+          if (permiso !== 'granted') {
+            console.log('Permiso de notificación denegado');
+          }
+        });
+      }
+    },
+
+    verificarNuevasConfirmaciones() {
+      const nombre = this.usuarioActual.nombre;
+
+      fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
+        .then(res => res.json())
+        .then(data => {
+          const nuevasConfirmadas = data.filter(inv => {
+            const estados = Object.values(inv.estados);
+            return estados.every(e => e === 'aceptada') &&
+              !this.notificadas.includes(inv.mesa.id);
+          });
+
+          nuevasConfirmadas.forEach(inv => {
+            this.notificarMesaConfirmada(inv.mesa);
+            this.notificadas.push(inv.mesa.id);
+            localStorage.setItem('mesasNotificadas', JSON.stringify(this.notificadas));
+          });
+
+          if (nuevasConfirmadas.length > 0) {
+            this.cargarMesasYInvitaciones();
+          }
+        });
+    },
+
+    notificarMesaConfirmada(mesa) {
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Invitación Confirmada ✅', {
+          body: `La mesa de ${mesa.materia} fue confirmada para el ${mesa.fecha}.`,
+          icon: '/icon-192x192.png'
+        });
+      }
     }
   }
 };

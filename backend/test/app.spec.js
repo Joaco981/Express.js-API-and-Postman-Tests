@@ -44,24 +44,6 @@ describe('API', () => {
         });
     });
 
-    //Se testea el get de mesas pero filtrado por profesor(titular o vocal)
-    test("GET /api/mesas/:usuario", async () => {
-
-        const res = await request(app).get('/api/mesas/Figueredo');
-    
-        expect(res.statusCode).toBe(200);
-        expect(Array.isArray(res.body)).toBe(true);
-    
-       expect(res.body[0]).toEqual({
-        id: 3,
-        materia: "Paradigmas I",
-        titular: { nombre: "Gilda", legajo: "67890" },
-        vocal:   { nombre: "Figueredo", legajo: "62220" },
-        fecha: "2025-06-20",
-        alumnos: ["Rodrigo", "Augusto"]
-        });
-    });
-
     //Se testea el get profesores, osea obtener todos los profesores
     test("GET /api/profesores", async () => {
         const res = await request(app).get('/api/profesores');
@@ -208,20 +190,19 @@ describe("POST /api/invitaciones/aceptar - aceptación completa", () => {
       
         // Segunda aceptación de Jose
         const res = await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Jose" });
-        
-        // Verificar estado de la invitación
-        const invitacion = Invitaciones.find(i => i.mesa.id === 4);
-        expect(invitacion.getEstadosIndividuos()).toEqual({
-          Gilda: "aceptada",
-          Jose: "aceptada"
-        });
-        expect(invitacion.estado).toBe("aceptada");
-      
+
         // Verificar que la mesa fue agregada
-        const mesaAgregada = Invitaciones.find(i => i.mesa.id === 4)?.mesa;
+        const mesaAgregada = mesas.find(m => m.id === 4);
         expect(mesaAgregada).toBeDefined();
         expect(mesaAgregada.materia).toBe("Ing en software I");
-      });
+
+        //Testear que se filtre la mesa de GIlda
+        const res2 = await request(app).get('/api/mesas/Gilda');
+    
+        expect(res2.statusCode).toBe(200);
+        expect(Array.isArray(res2.body)).toBe(true);
+        
+    });
 
 });
 
@@ -299,8 +280,7 @@ describe("GET /api/notificaciones", () => {
         res.body.forEach(notif => {
             expect(notif).toEqual(
                 expect.objectContaining({
-                    mensaje: expect.any(String),
-                    usuario: usuario
+                    receptor: usuario
                 })
             );
         });

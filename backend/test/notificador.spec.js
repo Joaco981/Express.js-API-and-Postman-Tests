@@ -20,6 +20,9 @@ describe("Clase Notificador", () => {
   let mesa;
 
   beforeEach(() => {
+    // Limpia la instancia singleton antes de cada test
+    Notificador._instance = null;
+
     const titular = new Profesor('Jose', '111');
     const vocal = new Profesor('Gilda', '222');
     profesores = { Jose: titular, Gilda: vocal };
