@@ -52,7 +52,6 @@ export default {
       mesas: [],
       invitaciones: [],
       notificadas: []
-
     };
   },
 
@@ -70,24 +69,21 @@ export default {
     }, 10000);
   },
 
-
   computed: {
     mesasAsignadas() {
-    return this.mesas.filter(mesa => {
-      const estados = mesa.estados || {}; // <- corregido acá
-      const usuario = this.usuarioActual.nombre.toLowerCase();
-      const titular = mesa.titular?.nombre.toLowerCase();
-      const vocal = mesa.vocal?.nombre.toLowerCase();
+      return this.mesas.filter(mesa => {
+        const estados = mesa.estados || {};
+        const usuario = this.usuarioActual.nombre.toLowerCase();
+        const titular = mesa.titular?.nombre.toLowerCase();
+        const vocal = mesa.vocal?.nombre.toLowerCase();
 
-      const esTitular = titular === usuario;
-      const esVocal = vocal === usuario;
-      const ambosAceptaron = estados[titular] === 'aceptada' && estados[vocal] === 'aceptada';
+        const esTitular = titular === usuario;
+        const esVocal = vocal === usuario;
+        const ambosAceptaron = estados[titular] === 'aceptada' && estados[vocal] === 'aceptada';
 
-      return (esTitular || esVocal) && ambosAceptaron;
-    });
-  },
-
-
+        return (esTitular || esVocal) && ambosAceptaron;
+      });
+    },
 
     invitacionesPendientes() {
       return this.invitaciones.filter(inv => {
@@ -96,7 +92,6 @@ export default {
       });
     }
   },
-
 
   methods: {
     obtenerRol(mesa) {
@@ -132,18 +127,15 @@ export default {
     cargarMesasYInvitaciones() {
       const nombre = this.usuarioActual.nombre;
 
-      // 1. Carga invitaciones pendientes
       fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
         .then(res => res.json())
         .then(data => {
           this.invitaciones = data;
         });
 
-      // 2. Carga mesas de examen (las confirmadas)
       fetch(`http://localhost:3000/api/mesas/${nombre}`)
         .then(res => res.json())
         .then(mesasExistentes => {
-          console.log('Mesas recibidas del backend:', mesasExistentes); // Para depurar
           this.mesas = mesasExistentes;
         });
     },
@@ -186,14 +178,13 @@ export default {
           const nuevasConfirmadas = data.filter(inv => {
             const estados = Object.values(inv.estados);
             return estados.every(e => e === 'aceptada') &&
-                  !this.notificadas.includes(inv.mesa.id);
+              !this.notificadas.includes(inv.mesa.id);
           });
 
           nuevasConfirmadas.forEach(inv => {
             this.notificarMesaConfirmada(inv.mesa);
-            this.notificadas.push(inv.mesa.id); // ← Marcamos como ya notificada
+            this.notificadas.push(inv.mesa.id);
             localStorage.setItem('mesasNotificadas', JSON.stringify(this.notificadas));
-
           });
 
           if (nuevasConfirmadas.length > 0) {
@@ -202,12 +193,11 @@ export default {
         });
     },
 
-
     notificarMesaConfirmada(mesa) {
       if ('Notification' in window && Notification.permission === 'granted') {
         new Notification('Invitación Confirmada ✅', {
           body: `La mesa de ${mesa.materia} fue confirmada para el ${mesa.fecha}.`,
-          icon: '/icon-192x192.png' // Reemplazalo con tu ícono real
+          icon: '/icon-192x192.png'
         });
       }
     }
