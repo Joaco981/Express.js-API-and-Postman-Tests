@@ -10,15 +10,19 @@ const { mesas } = require('./data/mesas');
 const profesores = require('./data/profesores');
 const { obtenerEstadoInstancia } = require('./service/StateInvitacion');
 
+// Notificador para emails
 const Notificador = require('./models/Notificador.js');
 const notificador = Notificador.getInstance(profesores);
 const ObserverEmail = require('./service/ObserverEmail.js');
 const emailObserver = new ObserverEmail();
 notificador.addObserver(emailObserver);
+
+// Notificador para push al escritorio
+const NotificadorPush = require('./models/NotificadorPush.js');
+const notificadorPush = NotificadorPush.getInstance();
+
 const EmailService = require('./service/EmailService');
 const emailService = new EmailService();
-
-
 
 app.use(cors());
 app.use(express.json());
@@ -54,10 +58,6 @@ app.get('/api/mesas/:usuario', (req, res) => {
     }));
   res.json(mesasConfirmadas);
 });
-
-
-
-
 
 // Obtener todas las mesas
 app.get('/api/mesas', (req, res) => {
@@ -99,8 +99,6 @@ app.get('/api/invitaciones/:usuario', (req, res) => {
   res.json(invitadas);
 });
 
-
-
 // Aceptar invitación
 app.post('/api/invitaciones/aceptar', async (req, res) => {
   const { id, usuario } = req.body;
@@ -111,7 +109,6 @@ app.post('/api/invitaciones/aceptar', async (req, res) => {
     (i.mesa.titular.nombre.toLowerCase() === usuarioLower ||
     i.mesa.vocal.nombre.toLowerCase() === usuarioLower)
   );
-
 
   if (!invitacion) {
     return res.status(404).json({ error: 'Invitación no encontrada' });
@@ -138,17 +135,14 @@ app.post('/api/invitaciones/aceptar', async (req, res) => {
           alumnos: invitacion.mesa.alumnos,
           _estados: invitacion.mesa._estados
         });
-        // Marcar como confirmada (opcional, puedes usarlo como flag explícito)
+        // Marcar como confirmada
         invitacion.estado = 'confirmada';
 
-
+        // Notificar por email usando el notificador original
         notificador.notificar(invitacion.mesa);
-        const mensaje = `La invitación para la mesa de ${invitacion.mesa.materia} fue confirmada por ambos profesores (${invitacion.mesa.titular.nombre} y ${invitacion.mesa.vocal.nombre}).`;
-        await emailService.sendEmail({
-          to: process.env.EMAIL_DESTINO,
-          subject: 'Confirmación de invitación',
-          html: `<p>${mensaje}</p>`
-        });
+
+        // Notificar por push usando el nuevo notificador
+        notificadorPush.notificar(invitacion.mesa);
         
         console.log('Mesa agregada:', invitacion.mesa.id);
       }
@@ -159,8 +153,6 @@ app.post('/api/invitaciones/aceptar', async (req, res) => {
     res.status(400).json({ error: e.message });
   }
 });
-
-
 
 // Rechazar invitación
 app.post('/api/invitaciones/rechazar', (req, res) => {
@@ -189,7 +181,6 @@ app.post('/api/invitaciones/rechazar', (req, res) => {
   }
 });
 
-
 // Obtener todas las notificaciones
 app.get('/api/notificaciones', (req, res) => {
   res.json(notificador.obtenerNotificaciones());
@@ -200,21 +191,41 @@ app.get('/api/notificaciones/:usuario', (req, res) => {
   res.json(notificador.obtenerNotificacionesPorUsuario(req.params.usuario));
 });
 
-// Registrar suscripción push
+// Registrar usuario para notificaciones push
 app.post('/api/notificaciones/registrar', (req, res) => {
-  const { usuario, subscription } = req.body;
+  const { usuario } = req.body;
   
-  if (!usuario || !subscription) {
-    return res.status(400).json({ error: 'Faltan datos requeridos' });
+  if (!usuario) {
+    return res.status(400).json({ error: 'Usuario no proporcionado' });
   }
 
   try {
-    notificador.registrarSuscripcionPush(usuario, subscription);
-    console.log('Suscripción push registrada para:', usuario);
-    res.json({ success: true });
+    const registrado = notificadorPush.registrarUsuario(usuario);
+    if (registrado) {
+      res.json({ success: true, message: 'Usuario registrado para notificaciones push' });
+    } else {
+      res.status(400).json({ error: 'No se pudo registrar el usuario para notificaciones push' });
+    }
   } catch (error) {
-    console.error('Error al registrar suscripción push:', error);
-    res.status(500).json({ error: 'Error al registrar la suscripción' });
+    console.error('Error al registrar usuario para notificaciones push:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
+  }
+});
+
+// Obtener mensajes push pendientes
+app.get('/api/notificaciones/push/:usuario', (req, res) => {
+  const { usuario } = req.params;
+  
+  if (!usuario) {
+    return res.status(400).json({ error: 'Usuario no proporcionado' });
+  }
+
+  try {
+    const mensajes = notificadorPush.estrategiaPush.obtenerMensajesPendientes(usuario);
+    res.json({ mensajes });
+  } catch (error) {
+    console.error('Error al obtener mensajes push:', error);
+    res.status(500).json({ error: 'Error interno del servidor' });
   }
 });
 

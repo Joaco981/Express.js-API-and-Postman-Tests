@@ -66,9 +66,15 @@ export default {
     const guardadas = localStorage.getItem('mesasNotificadas');
     this.notificadas = guardadas ? JSON.parse(guardadas) : [];
 
+    // Verificar nuevas confirmaciones cada 10 segundos
     setInterval(() => {
       this.verificarNuevasConfirmaciones();
     }, 10000);
+
+    // Verificar mensajes push pendientes cada 5 segundos
+    setInterval(() => {
+      this.verificarMensajesPush();
+    }, 5000);
   },
 
   computed: {
@@ -171,26 +177,20 @@ export default {
         try {
           const permiso = await Notification.requestPermission();
           if (permiso === 'granted') {
-            const registration = await navigator.serviceWorker.register('/service-worker.js', {
-              scope: '/'
-            });
-            console.log('Service Worker registrado:', registration);
-
+            // Registrar al usuario para notificaciones
             const response = await fetch(`${this.apiUrl}/notificaciones/registrar`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                usuario: this.usuarioActual.nombre,
-                subscription: true
+                usuario: this.usuarioActual.nombre
               })
             });
 
-            if (!response.ok) throw new Error('Error al registrar la suscripción');
-
-            console.log('Suscripción push registrada exitosamente');
+            if (!response.ok) throw new Error('Error al registrar la notificación');
+            console.log('Notificaciones registradas exitosamente');
           }
         } catch (error) {
-          console.error('Error al configurar notificaciones push:', error);
+          console.error('Error al configurar notificaciones:', error);
         }
       }
     },
@@ -207,7 +207,6 @@ export default {
           });
 
           nuevasConfirmadas.forEach(inv => {
-            this.notificarMesaConfirmada(inv.mesa);
             this.notificadas.push(inv.mesa.id);
             localStorage.setItem('mesasNotificadas', JSON.stringify(this.notificadas));
           });
@@ -218,12 +217,28 @@ export default {
         });
     },
 
-    notificarMesaConfirmada(mesa) {
-      if ('Notification' in window && Notification.permission === 'granted') {
-        new Notification('Invitación Confirmada ✅', {
-          body: `La mesa de ${mesa.materia} fue confirmada para el ${mesa.fecha}.`,
-          icon: '/icon-192x192.png'
+    async verificarMensajesPush() {
+      if (!('Notification' in window) || Notification.permission !== 'granted') {
+        return;
+      }
+
+      try {
+        const response = await fetch(`${this.apiUrl}/notificaciones/push/${this.usuarioActual.nombre}`);
+        if (!response.ok) throw new Error('Error al obtener mensajes push');
+        
+        const { mensajes } = await response.json();
+        
+        // Mostrar cada mensaje como una notificación
+        mensajes.forEach(mensaje => {
+          new Notification(mensaje.titulo, {
+            body: mensaje.cuerpo,
+            icon: '/icon-192x192.png',
+            requireInteraction: true,
+            vibrate: [100, 50, 100]
+          });
         });
+      } catch (error) {
+        console.error('Error al verificar mensajes push:', error);
       }
     }
   }

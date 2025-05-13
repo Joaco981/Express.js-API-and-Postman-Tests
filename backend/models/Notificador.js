@@ -6,9 +6,8 @@ class Notificador {
     if (Notificador._instance) return Notificador._instance;
 
     this.notificaciones = [];
-    this.estrategiaPush = new PushStrategyNotification(); // Strategy SOLO para push
     this.profesores = profesores;
-    this.observers = []; // Observer SOLO para email
+    this.observers = []; // Observer para email
 
     Notificador._instance = this;
   }
@@ -24,20 +23,15 @@ class Notificador {
     this.observers.push(observer);
   }
 
-  setEstrategiaEmail(estrategia) {
-    this.estrategiaEmail = estrategia;
+  removeObserver(observer) {
+    const index = this.observers.indexOf(observer);
+    if (index !== -1) {
+      this.observers.splice(index, 1);
+    }
   }
 
-  setEstrategiaPush(estrategia) {
-    this.estrategiaPush = estrategia;
-  }
-
-  notifyObservers(message) {
-    this.observers.forEach(observer => {
-      if (typeof observer.update === 'function') {
-        observer.update(message);
-      }
-    });
+  notifyObservers(mensaje) {
+    this.observers.forEach(observer => observer.update(mensaje));
   }
 
   notificar(mesa) {
@@ -49,32 +43,11 @@ class Notificador {
       this._crearMensaje(vocal.nombre, titular.nombre, 'Vocal', 'Titular', materia, fecha)
     ];
 
-    // Mensaje para push (usando Strategy)
-    const mensajePush = this._crearMensaje(
-      `${titular.nombre} y ${vocal.nombre}`,
-      '',
-      materia,
-      'confirmada',
-      '',
-      ''
-    );
-
     // Enviar notificaciones por email usando Observer
     mensajesEmail.forEach(msg => {
       this.notificaciones.push(msg);
-      this.notifyObservers(msg); // Solo Observer para email
+      this.notifyObservers(msg);
     });
-
-    // Enviar notificación push usando Strategy
-    this.notificaciones.push(mensajePush);
-    this.estrategiaPush.notificar(
-      mensajePush.receptor,
-      mensajePush.materia,
-      mensajePush.fecha,
-      mensajePush.rol,
-      mensajePush.otroProfesor,
-      mensajePush.rolOtro
-    );
   }
 
   _crearMensaje(receptor, otroProfesor, rol, rolOtro, materia, fecha) {
@@ -93,8 +66,8 @@ class Notificador {
     return this.notificaciones;
   }
 
-  obtenerNotificacionesPorUsuario(nombre) {
-    return this.notificaciones.filter(n => n.receptor === nombre);
+  obtenerNotificacionesPorUsuario(usuario) {
+    return this.notificaciones.filter(n => n.receptor === usuario);
   }
 
   // Método para registrar suscripciones push
