@@ -24,7 +24,7 @@ class ObserverNotificacionEscritorio {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         usuario: receptor,
-        mensaje: `La invitación para la mesa de ${materia} fue confirmada por ambos profesores (${receptor} y ${otroProfesor}).`,
+        mensaje: `La invitación para la mesa de ${materia} fue confirmada por ambos profesores`,
         fecha
       })
     });
