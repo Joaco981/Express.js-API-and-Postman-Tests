@@ -6,10 +6,9 @@ class Notificador {
     if (Notificador._instance) return Notificador._instance;
 
     this.notificaciones = [];
-    this.estrategiaEmail = new ConsolaStrategyNotification(); // Strategy para emails
-    this.estrategiaPush = new PushStrategyNotification(); // Strategy para push
+    this.estrategiaPush = new PushStrategyNotification(); // Strategy SOLO para push
     this.profesores = profesores;
-    this.observers = []; // Observer pattern
+    this.observers = []; // Observer SOLO para email
 
     Notificador._instance = this;
   }
@@ -44,13 +43,13 @@ class Notificador {
   notificar(mesa) {
     const { materia, fecha, titular, vocal } = mesa;
 
-    // Mensajes para los profesores (email)
+    // Mensajes para los profesores (email) - usando Observer
     const mensajesEmail = [
       this._crearMensaje(titular.nombre, vocal.nombre, 'Titular', 'Vocal', materia, fecha),
       this._crearMensaje(vocal.nombre, titular.nombre, 'Vocal', 'Titular', materia, fecha)
     ];
 
-    // Mensaje para todos (push)
+    // Mensaje para push (usando Strategy)
     const mensajePush = this._crearMensaje(
       `${titular.nombre} y ${vocal.nombre}`,
       '',
@@ -60,16 +59,13 @@ class Notificador {
       ''
     );
 
-    // Enviar notificaciones por email a los profesores
+    // Enviar notificaciones por email usando Observer
     mensajesEmail.forEach(msg => {
       this.notificaciones.push(msg);
-      this.estrategiaEmail.notificar(
-        msg.receptor, msg.materia, msg.fecha, msg.rol, msg.otroProfesor, msg.rolOtro
-      );
-      this.notifyObservers(msg); // Observer notification para email
+      this.notifyObservers(msg); // Solo Observer para email
     });
 
-    // Enviar notificación push a todos
+    // Enviar notificación push usando Strategy
     this.notificaciones.push(mensajePush);
     this.estrategiaPush.notificar(
       mensajePush.receptor,

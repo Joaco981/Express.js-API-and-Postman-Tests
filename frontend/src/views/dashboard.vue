@@ -147,20 +147,8 @@ export default {
         // Actualizar las invitaciones
         this.invitaciones = invitaciones;
 
-        // Actualizar las mesas, combinando las mesas confirmadas con las invitaciones pendientes
-        const mesasPendientes = invitaciones
-          .filter(i => i.estado === 'pendiente')
-          .map(i => i.mesa);
-
-        // Combinar mesas confirmadas y pendientes, evitando duplicados
-        const todasLasMesas = [...mesasConfirmadas];
-        mesasPendientes.forEach(mesaPendiente => {
-          if (!todasLasMesas.some(m => m.id === mesaPendiente.id)) {
-            todasLasMesas.push(mesaPendiente);
-          }
-        });
-
-        this.mesas = todasLasMesas;
+        // Actualizar las mesas - solo las confirmadas
+        this.mesas = mesasConfirmadas;
       } catch (error) {
         console.error('Error:', error);
         this.error = 'Error al cargar las mesas e invitaciones';
