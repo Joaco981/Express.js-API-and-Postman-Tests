@@ -29,13 +29,13 @@ class PushStrategyNotification extends StrategyNotification {
       // Creamos mensajes personalizados para cada profesor
       const mensajeTitular = {
         titulo: 'Confirmación de Mesa',
-        cuerpo: `La invitación para la mesa de ${materia} fue confirmada. Usted ha sido confirmado como titular.`,
+        cuerpo: `La invitación para la mesa de ${materia} fue confirmada. Para la fecha ${fecha}.`,
         timestamp: Date.now()
       };
 
       const mensajeVocal = {
         titulo: 'Confirmación de Mesa',
-        cuerpo: `La invitación para la mesa de ${materia} fue confirmada. Usted ha sido confirmado como vocal.`,
+        cuerpo: `La invitación para la mesa de ${materia} fue confirmada. Para la fecha ${fecha}.`,
         timestamp: Date.now()
       };
       
