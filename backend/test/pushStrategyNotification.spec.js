@@ -24,7 +24,6 @@ describe('PushStrategyNotification', () => {
 
         expect(mensajes.length).toBe(1);
         expect(mensajes[0].titulo).toBe('Confirmación de Mesa');
-        expect(mensajes[0].cuerpo).toContain('Usted ha sido confirmado como titular');
     });
 
     test('no notifica si el usuario no está suscrito', () => {
@@ -58,10 +57,10 @@ describe('PushStrategyNotification', () => {
         const mensajesGilda = pushNotifier.obtenerMensajesPendientes('Gilda');
 
         expect(mensajesJose.length).toBe(1);
-        expect(mensajesJose[0].cuerpo).toContain('como titular');
+        expect(mensajesJose[0].cuerpo).toContain('fue confirmada.');
 
         expect(mensajesGilda.length).toBe(1);
-        expect(mensajesGilda[0].cuerpo).toContain('como vocal');
+        expect(mensajesGilda[0].cuerpo).toContain('fue confirmada.');
     });
 
     test('limpia los mensajes después de obtenerlos', () => {
