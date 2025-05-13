@@ -10,19 +10,34 @@ class PushStrategyNotification extends StrategyNotification {
   notificar(nombreProfesor, materia, fecha, rol, otroProfesor, rolOtroProfesor) {
     // Solo enviamos notificación push cuando ambos profesores han aceptado
     if (rol === 'confirmada') {
-      const mensaje = {
+      // Creamos mensajes personalizados para cada profesor
+      const mensajeTitular = {
         titulo: 'Confirmación de Mesa',
-        cuerpo: `La invitación para la mesa de ${materia} fue confirmada por ambos profesores (${nombreProfesor} y ${otroProfesor}).`,
+        cuerpo: `La invitación para la mesa de ${materia} fue confirmada. Usted ha sido confirmado como titular junto con ${otroProfesor} como vocal.`,
+        timestamp: Date.now()
+      };
+
+      const mensajeVocal = {
+        titulo: 'Confirmación de Mesa',
+        cuerpo: `La invitación para la mesa de ${materia} fue confirmada. Usted ha sido confirmado como vocal junto con ${nombreProfesor} como titular.`,
         timestamp: Date.now()
       };
       
-      // Guardamos el mensaje para cada usuario suscrito
-      for (const [usuario, _] of this.subscriptions.entries()) {
-        if (!this.mensajesPendientes.has(usuario)) {
-          this.mensajesPendientes.set(usuario, []);
+      // Guardamos los mensajes para cada profesor
+      if (this.subscriptions.has(nombreProfesor)) {
+        if (!this.mensajesPendientes.has(nombreProfesor)) {
+          this.mensajesPendientes.set(nombreProfesor, []);
         }
-        this.mensajesPendientes.get(usuario).push(mensaje);
-        console.log('Mensaje push guardado para:', usuario);
+        this.mensajesPendientes.get(nombreProfesor).push(mensajeTitular);
+        console.log('Mensaje push guardado para titular:', nombreProfesor);
+      }
+
+      if (this.subscriptions.has(otroProfesor)) {
+        if (!this.mensajesPendientes.has(otroProfesor)) {
+          this.mensajesPendientes.set(otroProfesor, []);
+        }
+        this.mensajesPendientes.get(otroProfesor).push(mensajeVocal);
+        console.log('Mensaje push guardado para vocal:', otroProfesor);
       }
     }
   }
