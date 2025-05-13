@@ -2,20 +2,23 @@ const Notificador = require('../models/Notificador');
 const Mesa = require('../models/Mesa');
 const Profesor = require('../models/Profesor');
 
-// Creamos una estrategia falsa para verificar que se llamó
-class MockStrategy {
+/**
+ * Mock del Observer para pruebas
+ * Simula el comportamiento de ObserverEmail y ObserverNotificacionEscritorio
+ */
+class MockObserver {
   constructor() {
-    this.llamadas = [];
+    this.mensajes = [];
   }
 
-  notificar(receptor, materia, fecha, rol, otroProfesor, rolOtro) {
-    this.llamadas.push({ receptor, materia, fecha, rol, otroProfesor, rolOtro });
+  update(mensaje) {
+    this.mensajes.push(mensaje);
   }
 }
 
 describe("Clase Notificador", () => {
   let notificador;
-  let estrategiaMock;
+  let mockObserver;
   let profesores;
   let mesa;
 
@@ -27,20 +30,24 @@ describe("Clase Notificador", () => {
     const vocal = new Profesor('Gilda', '222');
     profesores = { Jose: titular, Gilda: vocal };
 
-    estrategiaMock = new MockStrategy();
+    mockObserver = new MockObserver();
     notificador = new Notificador(profesores);
-    notificador.setEstrategia(estrategiaMock);
+    notificador.addObserver(mockObserver);
 
     mesa = new Mesa(1, 'Paradigmas', profesores.Jose, profesores.Gilda, '2025-07-10', ['Iván', 'Ramiro']);
   });
 
-  test("notificar genera 2 mensajes usando la estrategia", () => {
+  /**
+   * Test: Verifica que el notificador genera y envía mensajes correctamente
+   * usando el patrón Observer
+   */
+  test("notificar genera mensajes usando los observers", () => {
     notificador.notificar(mesa);
 
-    // Verifica que la estrategia se haya usado correctamente
-    expect(estrategiaMock.llamadas).toHaveLength(2);
+    // Verifica que el observer recibió los mensajes
+    expect(mockObserver.mensajes).toHaveLength(2);
 
-    expect(estrategiaMock.llamadas[0]).toMatchObject({
+    expect(mockObserver.mensajes[0]).toMatchObject({
       receptor: 'Jose',
       materia: 'Paradigmas',
       fecha: '2025-07-10',
@@ -49,7 +56,7 @@ describe("Clase Notificador", () => {
       rolOtro: 'Vocal'
     });
 
-    expect(estrategiaMock.llamadas[1]).toMatchObject({
+    expect(mockObserver.mensajes[1]).toMatchObject({
       receptor: 'Gilda',
       rol: 'Vocal',
       otroProfesor: 'Jose',
@@ -57,6 +64,10 @@ describe("Clase Notificador", () => {
     });
   });
 
+  /**
+   * Test: Verifica que las notificaciones se almacenan internamente
+   * en el notificador
+   */
   test("las notificaciones se guardan internamente", () => {
     notificador.notificar(mesa);
     const todas = notificador.obtenerNotificaciones();
@@ -65,6 +76,10 @@ describe("Clase Notificador", () => {
     expect(todas[0].receptor).toBe('Jose');
   });
 
+  /**
+   * Test: Verifica que el filtrado de notificaciones por usuario
+   * funciona correctamente
+   */
   test("filtrado por usuario funciona", () => {
     notificador.notificar(mesa);
     const notisJose = notificador.obtenerNotificacionesPorUsuario('Jose');
@@ -76,27 +91,44 @@ describe("Clase Notificador", () => {
     expect(notisGilda[0].rol).toBe('Vocal');
   });
 
-  //Test remover observer
+  /**
+   * Test: Verifica que se pueden eliminar observers correctamente
+   * del sistema de notificaciones
+   */
   test('debería eliminar un observer del array', () => {
-    const notificador = new Notificador();
-    
-    // Mocks de observers
-    const observer1 = jest.fn();
-    const observer2 = jest.fn();
+    const observer1 = new MockObserver();
+    const observer2 = new MockObserver();
 
     notificador.addObserver(observer1);
     notificador.addObserver(observer2);
     
-    expect(notificador.observers.length).toBe(2);
+    expect(notificador.observers.length).toBe(3); // 2 nuevos + 1 del beforeEach
 
-    // Remover uno
     notificador.removeObserver(observer1);
 
-    // Validar que solo queda el otro
     expect(notificador.observers).toContain(observer2);
     expect(notificador.observers).not.toContain(observer1);
-    expect(notificador.observers.length).toBe(1);
+    expect(notificador.observers.length).toBe(2);
   });
 
+  /**
+   * Test: Verifica que el patrón Singleton funciona correctamente
+   * y devuelve siempre la misma instancia
+   */
+  test("singleton funciona correctamente", () => {
+    const instancia2 = new Notificador(profesores);
+    expect(instancia2).toBe(notificador);
+  });
+
+  /**
+   * Test: Verifica que el registro de suscripciones push
+   * se realiza correctamente usando la estrategia
+   */
+  test("registra suscripción push usando la estrategia", () => {
+    const estrategiaFake = { registrarSuscripcion: jest.fn() };
+    notificador.estrategiaPush = estrategiaFake;
+    notificador.registrarSuscripcionPush('Gilda', { endpoint: 'abc' });
+    expect(estrategiaFake.registrarSuscripcion).toHaveBeenCalledWith('Gilda', { endpoint: 'abc' });
+  });
 });
 

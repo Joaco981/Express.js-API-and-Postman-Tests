@@ -1,12 +1,28 @@
 const StrategyNotification = require('./StrategyNotification');
 
+/**
+ * Implementación de Strategy para notificaciones push
+ * Maneja el almacenamiento y envío de notificaciones push a usuarios suscritos
+ */
 class PushStrategyNotification extends StrategyNotification {
+  /**
+   * Inicializa las estructuras para manejar suscripciones y mensajes
+   */
   constructor() {
     super();
     this.subscriptions = new Map(); // Mantenemos un registro de usuarios suscritos
     this.mensajesPendientes = new Map(); // Almacenamos mensajes pendientes por usuario
   }
 
+  /**
+   * Envía una notificación push a los usuarios correspondientes
+   * @param {string} nombreProfesor - Nombre del profesor titular
+   * @param {string} materia - Nombre de la materia
+   * @param {string} fecha - Fecha de la mesa
+   * @param {string} rol - Rol en la mesa ('confirmada' para enviar)
+   * @param {string} otroProfesor - Nombre del profesor vocal
+   * @param {string} rolOtroProfesor - Rol del otro profesor
+   */
   notificar(nombreProfesor, materia, fecha, rol, otroProfesor, rolOtroProfesor) {
     // Solo enviamos notificación push cuando ambos profesores han aceptado
     if (rol === 'confirmada') {
@@ -42,20 +58,31 @@ class PushStrategyNotification extends StrategyNotification {
     }
   }
 
-  // Método para obtener mensajes pendientes de un usuario
+  /**
+   * Obtiene los mensajes pendientes para un usuario
+   * @param {string} usuario - Usuario del que obtener mensajes
+   * @returns {Array} Lista de mensajes pendientes
+   */
   obtenerMensajesPendientes(usuario) {
     const mensajes = this.mensajesPendientes.get(usuario) || [];
     this.mensajesPendientes.set(usuario, []); // Limpiamos los mensajes después de obtenerlos
     return mensajes;
   }
 
-  // Método para registrar un usuario para notificaciones
+  /**
+   * Registra un usuario para recibir notificaciones
+   * @param {string} usuario - Usuario a registrar
+   * @returns {boolean} True si el registro fue exitoso
+   */
   registrarUsuario(usuario) {
     this.subscriptions.set(usuario, true);
     return true;
   }
 
-  // Método para eliminar un usuario de las notificaciones
+  /**
+   * Elimina un usuario de las notificaciones
+   * @param {string} usuario - Usuario a eliminar
+   */
   eliminarUsuario(usuario) {
     this.subscriptions.delete(usuario);
     this.mensajesPendientes.delete(usuario);

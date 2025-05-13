@@ -1,6 +1,10 @@
 const ConsolaStrategyNotification = require('../service/ConsolaStrategyNotification');
 const StrategyNotification = require('../service/StrategyNotification');
 
+/**
+ * Suite de pruebas para la clase base StrategyNotification
+ * Verifica que la implementación del patrón Strategy es correcta
+ */
 describe('StrategyNotification Base Class', () => {
   let strategyBase;
 
@@ -8,6 +12,10 @@ describe('StrategyNotification Base Class', () => {
     strategyBase = new StrategyNotification();
   });
 
+  /**
+   * Test: Verifica que el método notificar de la clase base
+   * lanza un error si no es implementado por las clases hijas
+   */
   test('el método notificar de la clase base lanza un error si no es implementado', () => {
     expect(() => {
       strategyBase.notificar('Nombre Profesor', 'Materia', 'Fecha', 'Rol', 'Otro Profesor', 'Rol Otro Profesor');

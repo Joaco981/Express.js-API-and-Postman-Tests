@@ -1,6 +1,17 @@
 const { obtenerEstadoInstancia } = require('../service/StateInvitacion');
 
+/**
+ * Clase que representa una invitación a una mesa de examen
+ * Implementa el patrón State para manejar los estados de la invitación
+ */
 class Invitacion {
+  /**
+   * Crea una nueva instancia de Invitacion
+   * @param {Mesa} mesa - Mesa de examen asociada
+   * @param {string} estadoInicial - Estado inicial de la invitación (default: 'pendiente')
+   * @param {Profesor} titular - Profesor titular
+   * @param {Profesor} vocal - Profesor vocal
+   */
   constructor(mesa, estadoInicial = 'pendiente', titular, vocal) {
     this.mesa = mesa;
     this._estados = {
@@ -9,6 +20,10 @@ class Invitacion {
     };
   }
 
+  /**
+   * Obtiene el estado general de la invitación
+   * @returns {string} Estado actual ('pendiente', 'aceptada' o 'rechazada')
+   */
   get estado() {
     const estados = Object.values(this._estados);
     if (estados.includes('rechazada')) return 'rechazada';
@@ -16,6 +31,10 @@ class Invitacion {
     return 'pendiente';
   }
 
+  /**
+   * Acepta la invitación para un profesor
+   * @param {string} nombreProfesor - Nombre del profesor que acepta
+   */
   aceptar(nombreProfesor) {
     const estadoActual = this._estados[nombreProfesor];
     const estado = obtenerEstadoInstancia(estadoActual);
@@ -23,13 +42,22 @@ class Invitacion {
     console.log('Estados después de aceptar:', this._estados);
   }
 
+  /**
+   * Rechaza la invitación para un profesor
+   * @param {string} nombreProfesor - Nombre del profesor que rechaza
+   */
   rechazar(nombreProfesor) {
     const estadoActual = this._estados[nombreProfesor];
     const estado = obtenerEstadoInstancia(estadoActual);
     estado.rechazar(this, nombreProfesor);
   }
 
-  //Que el profesor acepte la invitación
+  /**
+   * Método interno para aceptar una invitación
+   * @private
+   * @param {string} nombreProfesor - Nombre del profesor
+   * @throws {Error} Si la invitación ya fue procesada
+   */
   _aceptar(nombreProfesor) {
     if (this._estados[nombreProfesor] !== 'pendiente') {
       throw new Error('Ya procesaste esta invitación');
@@ -37,7 +65,12 @@ class Invitacion {
     this._estados[nombreProfesor] = 'aceptada';
   }
 
-  //Que el profesor rechace la invitación
+  /**
+   * Método interno para rechazar una invitación
+   * @private
+   * @param {string} nombreProfesor - Nombre del profesor
+   * @throws {Error} Si la invitación ya fue procesada
+   */
   _rechazar(nombreProfesor) {
     if (this._estados[nombreProfesor] !== 'pendiente') {
       throw new Error('Ya procesaste esta invitación');
@@ -45,10 +78,18 @@ class Invitacion {
     this._estados[nombreProfesor] = 'rechazada';
   }
 
+  /**
+   * Obtiene los estados individuales de cada profesor
+   * @returns {Object} Estados por profesor
+   */
   getEstadosIndividuos() {
     return this._estados;
   }
 
+  /**
+   * Convierte la invitación a formato JSON
+   * @returns {Object} Representación JSON de la invitación
+   */
   toJSON() {
     return {
       mesa: this.mesa,

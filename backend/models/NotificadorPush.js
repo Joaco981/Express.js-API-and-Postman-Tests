@@ -1,6 +1,13 @@
 const PushStrategyNotification = require('../service/PushStrategyNotification');
 
+/**
+ * Implementación del patrón Strategy para notificaciones push
+ * Maneja el envío de notificaciones push a los usuarios suscritos
+ */
 class NotificadorPush {
+  /**
+   * Constructor que implementa el patrón Singleton
+   */
   constructor() {
     if (NotificadorPush._instance) return NotificadorPush._instance;
     
@@ -8,6 +15,10 @@ class NotificadorPush {
     NotificadorPush._instance = this;
   }
 
+  /**
+   * Obtiene la instancia única del NotificadorPush (Singleton)
+   * @returns {NotificadorPush} Instancia única del notificador push
+   */
   static getInstance() {
     if (!NotificadorPush._instance) {
       NotificadorPush._instance = new NotificadorPush();
@@ -15,6 +26,10 @@ class NotificadorPush {
     return NotificadorPush._instance;
   }
 
+  /**
+   * Envía notificaciones push para una mesa de examen
+   * @param {Mesa} mesa - Mesa de examen para la cual enviar notificaciones
+   */
   notificar(mesa) {
     const { materia, titular, vocal } = mesa;
     
@@ -29,10 +44,19 @@ class NotificadorPush {
     );
   }
 
+  /**
+   * Registra un usuario para recibir notificaciones push
+   * @param {string} usuario - Usuario a registrar
+   * @returns {boolean} True si el registro fue exitoso
+   */
   registrarUsuario(usuario) {
     return this.estrategiaPush.registrarUsuario(usuario);
   }
 
+  /**
+   * Elimina un usuario de las notificaciones push
+   * @param {string} usuario - Usuario a eliminar
+   */
   eliminarUsuario(usuario) {
     this.estrategiaPush.eliminarUsuario(usuario);
   }

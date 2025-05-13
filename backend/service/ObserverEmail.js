@@ -1,11 +1,28 @@
 require('dotenv').config(); // Para usar variables del .env
 const EmailService = require('../service/EmailService');
 
+/**
+ * Implementación del Observer para envío de notificaciones por email
+ * Utiliza el servicio de email para enviar las notificaciones
+ */
 class ObserverEmail {
+  /**
+   * Inicializa el servicio de email
+   */
   constructor() {
     this.emailService = new EmailService();
   }
 
+  /**
+   * Procesa y envía una notificación por email
+   * @param {Object} mensaje - Mensaje a enviar
+   * @param {string} mensaje.receptor - Profesor que recibe el email
+   * @param {string} mensaje.materia - Nombre de la materia
+   * @param {string} mensaje.fecha - Fecha de la mesa
+   * @param {string} mensaje.rol - Rol del profesor en la mesa
+   * @param {string} mensaje.otroProfesor - Nombre del otro profesor
+   * @param {string} mensaje.rolOtro - Rol del otro profesor
+   */
   async update(mensaje) {
     const { receptor, materia, fecha, rol, otroProfesor, rolOtro } = mensaje;
 

@@ -2,7 +2,7 @@ const { Invitaciones } = require('../data/Invitaciones');
 const { mesas } = require('../data/mesas');
 //
 const request = require('supertest');
-const app = require('../app'); // tu archivo app.js debe exportar `app`
+const app = require('../app'); 
 
 describe('API', () => {
 
@@ -265,6 +265,7 @@ describe("POST /api/invitaciones/rechazar", () => {
 
 //Notificaciones
 describe("GET /api/notificaciones", () => {
+
     test("debe devolver todas las notificaciones", async () => {
         const res = await request(app).get('/api/notificaciones');
         expect(res.statusCode).toBe(200);
@@ -291,4 +292,60 @@ describe("GET /api/notificaciones", () => {
         expect(res.statusCode).toBe(200);
         expect(res.body).toEqual([]);
     });
-});    
+});
+
+describe('POST /api/notificaciones/registrar', () => {
+    test('registra usuario correctamente para notificaciones push', async () => {
+      const res = await request(app)
+        .post('/api/notificaciones/registrar')
+        .send({ usuario: 'Gilda' });
+  
+      expect(res.statusCode).toBe(200);
+      expect(res.body).toEqual({
+        success: true,
+        message: 'Usuario registrado para notificaciones push'
+      });
+    });
+  
+    test('retorna error si no se proporciona usuario', async () => {
+      const res = await request(app)
+        .post('/api/notificaciones/registrar')
+        .send({});
+  
+      expect(res.statusCode).toBe(400);
+      expect(res.body).toEqual({ error: 'Usuario no proporcionado' });
+    });
+});
+  
+describe('GET /api/notificaciones/push/:usuario', () => {
+
+    test('devuelve mensajes push pendientes para el usuario', async () => {
+        // Registrar usuario y generar un mensaje de prueba
+        await request(app).post('/api/notificaciones/registrar').send({ usuario: 'Gilda' });
+        const invitacion = Invitaciones.find(i => i.mesa.id === 6);
+        
+        invitacion._estados = {
+            Gilda: 'aceptada',
+            Jose: 'aceptada'
+        };
+        invitacion.estado = 'confirmada';
+
+        await request(app).post('/api/invitaciones/aceptar').send({ id: 6, usuario: 'Gilda' });
+        await request(app).post('/api/invitaciones/aceptar').send({ id: 6, usuario: 'Jose' });
+    
+        const res = await request(app).get('/api/notificaciones/push/Gilda');
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.mensajes)).toBe(true);
+    });
+  
+    test('retorna 200 y arreglo vacío si usuario no tiene mensajes pendientes', async () => {
+
+        await request(app).post('/api/notificaciones/registrar').send({ usuario: 'UsuarioSinMensajes' });
+        const res = await request(app).get('/api/notificaciones/push/UsuarioSinMensajes');
+        expect(res.statusCode).toBe(200);
+        expect(Array.isArray(res.body.mensajes)).toBe(true);
+        expect(res.body.mensajes.length).toBe(0);
+    });
+  });
+  
+   

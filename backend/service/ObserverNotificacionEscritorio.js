@@ -1,4 +1,17 @@
+/**
+ * Implementación del Observer para notificaciones de escritorio
+ * Envía notificaciones push al navegador del usuario
+ */
 class ObserverNotificacionEscritorio {
+  /**
+   * Procesa y envía una notificación al escritorio
+   * @param {Object} mensaje - Mensaje a enviar
+   * @param {string} mensaje.materia - Nombre de la materia
+   * @param {string} mensaje.fecha - Fecha de la mesa
+   * @param {string} mensaje.receptor - Profesor que recibe la notificación
+   * @param {string} mensaje.otroProfesor - Nombre del otro profesor
+   * @param {boolean} mensaje.ambosAceptaron - Indica si ambos profesores aceptaron
+   */
   async update(mensaje) {
     const { materia, fecha, receptor, otroProfesor } = mensaje;
 

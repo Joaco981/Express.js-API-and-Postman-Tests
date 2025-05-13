@@ -1,5 +1,17 @@
-// Clase Mesa: representa una mesa de examen con titular, vocal y alumnos
+/**
+ * Clase que representa una mesa de examen
+ * Contiene información sobre la materia, profesores y alumnos
+ */
 class Mesa {
+    /**
+     * Crea una nueva instancia de Mesa
+     * @param {number} id - Identificador único de la mesa
+     * @param {string} materia - Nombre de la materia
+     * @param {Profesor} titular - Profesor titular de la mesa
+     * @param {Profesor} vocal - Profesor vocal de la mesa
+     * @param {string} fecha - Fecha de la mesa en formato YYYY-MM-DD
+     * @param {string[]} alumnos - Lista de nombres de alumnos inscriptos
+     */
     constructor(id, materia, titular, vocal, fecha, alumnos = []) {
         this._id = id;
         this._materia = materia;
@@ -9,6 +21,7 @@ class Mesa {
         this._alumnos = alumnos;
     }
 
+    // Getters para acceder a las propiedades privadas
     get id() {
         return this._id;
     }
@@ -33,12 +46,20 @@ class Mesa {
         return this._alumnos;
     }
 
+    /**
+     * Agrega un alumno a la mesa si no está ya inscripto
+     * @param {string} nombre - Nombre del alumno a agregar
+     */
     agregarAlumno(nombre) {
         if (!this._alumnos.includes(nombre)) {
             this._alumnos.push(nombre);
         }
     }
 
+    /**
+     * Convierte la mesa a formato JSON para serialización
+     * @returns {Object} Representación JSON de la mesa
+     */
     toJSON() {
         return {
             id: this._id,
