@@ -4,7 +4,7 @@ const StrategyNotification = require('./StrategyNotification');
  * Implementación de Strategy para notificaciones push
  * Maneja el almacenamiento y envío de notificaciones push a usuarios suscritos
  */
-class PushStrategyNotification extends StrategyNotification {
+class StrategyPushNotification extends StrategyNotification {
   /**
    * Inicializa las estructuras para manejar suscripciones y mensajes
    */
@@ -89,4 +89,4 @@ class PushStrategyNotification extends StrategyNotification {
   }
 }
 
-module.exports = PushStrategyNotification; 
+module.exports = StrategyPushNotification; 

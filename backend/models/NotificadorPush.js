@@ -1,4 +1,4 @@
-const PushStrategyNotification = require('../service/PushStrategyNotification');
+const PushStrategyNotification = require('../service/StrategyPushNotification');
 
 /**
  * Implementación del patrón Strategy para notificaciones push

@@ -1,5 +1,5 @@
 const ConsolaStrategyNotification = require('../service/ConsolaStrategyNotification');
-const PushStrategyNotification = require('../service/PushStrategyNotification');
+const PushStrategyNotification = require('../service/StrategyPushNotification');
 
 /**
  * Implementación del patrón Observer para el sistema de notificaciones

@@ -1,4 +1,4 @@
-const PushStrategyNotification = require('../service/PushStrategyNotification');
+const PushStrategyNotification = require('../service/StrategyPushNotification');
 
 describe('PushStrategyNotification', () => {
 
