@@ -10,6 +10,7 @@
           Tu rol: <strong>{{ obtenerRol(mesa) }}</strong><br />
           {{ obtenerRol(mesa) === 'titular' ? 'Vocal' : 'Titular' }}:
           <em>{{ obtenerOtroNombre(mesa) }}</em><br />
+          <strong>Estado:</strong> {{ calcularEstadoMesa(mesa) }}<br />
           <strong>Alumnos:</strong>
           <ul>
             <li v-for="alumno in mesa.alumnos" :key="alumno">{{ alumno }}</li>
@@ -23,7 +24,7 @@
 
     <h3>Invitaciones:</h3>
     <ul>
-      <li v-for="inv in invitacionesPendientes" :key="inv.mesa.id">
+      <li v-for="inv in invitaciones" :key="inv.mesa.id">
         <strong>{{ inv.mesa.materia }}</strong> - {{ inv.mesa.fecha }}<br />
         Tu rol propuesto:
         <strong>{{ inv.mesa.titular.nombre === usuarioActual.nombre ? 'titular' : 'vocal' }}</strong><br />
@@ -72,30 +73,17 @@ export default {
 
   computed: {
     mesasAsignadas() {
-      return this.mesas.filter(mesa => {
-        const usuario = this.usuarioActual.nombre.toLowerCase();
-        const titular = mesa.titular?.nombre.toLowerCase();
-        const vocal = mesa.vocal?.nombre.toLowerCase();
-
-        const esTitular = titular === usuario;
-        const esVocal = vocal === usuario;
-
-        // Si la mesa tiene estados, verificar que ambos aceptaron
-        if (mesa.estados) {
-          const ambosAceptaron = mesa.estados[titular] === 'aceptada' && mesa.estados[vocal] === 'aceptada';
-          return (esTitular || esVocal) && ambosAceptaron;
-        }
-
-        // Si no tiene estados, es una mesa confirmada directamente
-        return esTitular || esVocal;
-      });
-    },
-
-    invitacionesPendientes() {
-      return this.invitaciones.filter(inv => {
-        const estados = Object.values(inv.estados);
-        return estados.filter(e => e === 'aceptada').length < 2;
-      });
+      const usuario = this.usuarioActual.nombre;
+      return this.mesas
+        .filter(mesa => mesa.titular?.nombre === usuario || mesa.vocal?.nombre === usuario)
+        .map(mesa => {
+          const invitacion = this.invitaciones.find(i => i.mesa.id === mesa.id);
+          return invitacion ? { ...mesa, estados: invitacion.estados } : mesa;
+        })
+        .filter(mesa => {
+          const estados = mesa.estados || {};
+          return Object.values(estados).filter(e => e === 'aceptada').length === 2;
+        });
     }
   },
 
@@ -110,8 +98,34 @@ export default {
         : mesa.titular?.nombre;
     },
 
+    calcularEstadoMesa(mesa) {
+      const estados = mesa.estados || {};
+      const aceptados = Object.values(estados).filter(e => e === 'aceptada').length;
+      const rechazados = Object.values(estados).filter(e => e === 'rechazada').length;
+
+      if (rechazados > 0) return "Mesa rechazada ❌";
+      if (aceptados === 2) return "Aceptada ✅";
+      if (aceptados === 1) return "Esperando confirmación (1/2)";
+      return "Esperando confirmación (0/2)";
+    },
+
+    calcularEstado(inv) {
+      const estados = Object.values(inv.estados);
+      const aceptados = estados.filter(e => e === 'aceptada').length;
+      const rechazados = estados.filter(e => e === 'rechazada').length;
+
+      if (rechazados > 0) return "Mesa rechazada ❌";
+      if (aceptados === 2) return "Aceptada ✅";
+      if (aceptados === 1) return "Esperando confirmación (1/2)";
+      return "Esperando confirmación (0/2)";
+    },
+
+    puedeAceptarRechazar(inv) {
+      return inv.estados[this.usuarioActual.nombre] === 'pendiente';
+    },
+
     aceptarInvitacion(id) {
-      fetch('http://localhost:3000/api/invitaciones/aceptar', {
+      fetch(`${this.apiUrl}/invitaciones/aceptar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, usuario: this.usuarioActual.nombre })
@@ -121,7 +135,7 @@ export default {
     },
 
     rechazarInvitacion(id) {
-      fetch('http://localhost:3000/api/invitaciones/rechazar', {
+      fetch(`${this.apiUrl}/invitaciones/rechazar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, usuario: this.usuarioActual.nombre })
@@ -144,10 +158,7 @@ export default {
         const invitaciones = await invitacionesRes.json();
         const mesasConfirmadas = await mesasRes.json();
 
-        // Actualizar las invitaciones
         this.invitaciones = invitaciones;
-
-        // Actualizar las mesas - solo las confirmadas
         this.mesas = mesasConfirmadas;
       } catch (error) {
         console.error('Error:', error);
@@ -155,66 +166,38 @@ export default {
       }
     },
 
-    calcularEstado(inv) {
-      const miEstado = inv.estados[this.usuarioActual.nombre];
-      const estados = Object.values(inv.estados);
-      const aceptados = estados.filter(e => e === 'aceptada').length;
-      const rechazados = estados.filter(e => e === 'rechazada').length;
-
-      if (miEstado === 'rechazada') return "Rechazaste la invitación ❌";
-      if (rechazados > 0 && miEstado === 'aceptada') {
-        return "Aceptaste, pero el otro rechazó. Esperando nuevo profesor...";
-      }
-      if (aceptados === 2) return "Aceptada ✅";
-
-      return `Esperando confirmación (${aceptados}/2)`;
-    },
-
-    puedeAceptarRechazar(inv) {
-      return inv.estados[this.usuarioActual.nombre] === 'pendiente';
-    },
-
     async pedirPermisoNotificacion() {
       if ('Notification' in window) {
         try {
           const permiso = await Notification.requestPermission();
           if (permiso === 'granted') {
-            // Registrar el service worker
             const registration = await navigator.serviceWorker.register('/service-worker.js', {
               scope: '/'
             });
             console.log('Service Worker registrado:', registration);
 
-            // Registrar la suscripción en el backend
-            const response = await fetch('http://localhost:3000/api/notificaciones/registrar', {
+            const response = await fetch(`${this.apiUrl}/notificaciones/registrar`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 usuario: this.usuarioActual.nombre,
-                subscription: true // Indicamos que el usuario está suscrito
+                subscription: true
               })
             });
 
-            if (!response.ok) {
-              throw new Error('Error al registrar la suscripción');
-            }
+            if (!response.ok) throw new Error('Error al registrar la suscripción');
 
             console.log('Suscripción push registrada exitosamente');
-          } else {
-            console.log('Permiso de notificación denegado');
           }
         } catch (error) {
           console.error('Error al configurar notificaciones push:', error);
         }
-      } else {
-        console.log('Este navegador no soporta notificaciones push');
       }
     },
 
     verificarNuevasConfirmaciones() {
       const nombre = this.usuarioActual.nombre;
-
-      fetch(`http://localhost:3000/api/invitaciones/${nombre}`)
+      fetch(`${this.apiUrl}/invitaciones/${nombre}`)
         .then(res => res.json())
         .then(data => {
           const nuevasConfirmadas = data.filter(inv => {
