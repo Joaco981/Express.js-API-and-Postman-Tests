@@ -75,4 +75,28 @@ describe("Clase Notificador", () => {
     expect(notisJose[0].rol).toBe('Titular');
     expect(notisGilda[0].rol).toBe('Vocal');
   });
+
+  //Test remover observer
+  test('debería eliminar un observer del array', () => {
+    const notificador = new Notificador();
+    
+    // Mocks de observers
+    const observer1 = jest.fn();
+    const observer2 = jest.fn();
+
+    notificador.addObserver(observer1);
+    notificador.addObserver(observer2);
+    
+    expect(notificador.observers.length).toBe(2);
+
+    // Remover uno
+    notificador.removeObserver(observer1);
+
+    // Validar que solo queda el otro
+    expect(notificador.observers).toContain(observer2);
+    expect(notificador.observers).not.toContain(observer1);
+    expect(notificador.observers.length).toBe(1);
+  });
+
 });
+

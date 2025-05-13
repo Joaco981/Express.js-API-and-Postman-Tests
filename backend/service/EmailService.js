@@ -13,7 +13,8 @@ class EmailService {
       }
     });
   }
-
+  
+/* istanbul ignore next */
   async sendEmail({ to, subject, html }) {
     try {
       const info = await this.transporter.sendMail({

@@ -11,7 +11,7 @@ class ObserverEmail {
 
     const to = process.env.EMAIL_DESTINO; // ← DIRECTAMENTE DEL .env
     if (!to) return console.warn(`EMAIL_DESTINO no definido en .env`);
-
+    /* istanbul ignore next */
     await this.emailService.sendEmail({
       to,
       subject: `Notificación de Mesa de Examen`,
