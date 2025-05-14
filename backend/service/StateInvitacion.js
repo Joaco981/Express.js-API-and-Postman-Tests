@@ -1,13 +1,13 @@
 class StateInvitacion {
-  /* eslint-disable no-unused-vars */
+  // eslint-disable-next-line no-unused-vars
   aceptar(invitacion, profesor) {
     throw new Error("Ya procesaste esta invitación");
   }
 
+  // eslint-disable-next-line no-unused-vars
   rechazar(invitacion, profesor) {
     throw new Error("Ya procesaste esta invitación");
   }
-  /* eslint-enable no-unused-vars */
 }
 
 class Pendiente extends StateInvitacion {
