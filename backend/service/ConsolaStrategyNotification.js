@@ -1,7 +1,9 @@
 import StrategyNotification from './StrategyNotification.js';
 
 class ConsolaStrategyNotification extends StrategyNotification {
+  /* eslint-disable no-unused-vars */
   notificar(nombreProfesor, materia, fecha, rol, otroProfesor, rolOtroProfesor) {
+  /* eslint-enable no-unused-vars */
     const fechaFormateada = new Date(fecha).toLocaleDateString('es-ES', {
       year: 'numeric',
       month: 'long',

@@ -11,6 +11,7 @@ class StateInvitacion {
 }
 
 class Pendiente extends StateInvitacion {
+  /* eslint-disable no-unused-vars */
   aceptar(invitacion, profesor) {
     invitacion._aceptar(profesor);
   }
@@ -18,10 +19,11 @@ class Pendiente extends StateInvitacion {
   rechazar(invitacion, profesor) {
     invitacion._rechazar(profesor);
   }
+  /* eslint-enable no-unused-vars */
 }
 
 class Aceptada extends StateInvitacion {
-  // eslint-disable-next-line no-unused-vars
+  /* eslint-disable no-unused-vars */
   aceptar(invitacion, profesor) {
     throw new Error("Ya aceptaste esta invitación");
   }
@@ -29,17 +31,19 @@ class Aceptada extends StateInvitacion {
   rechazar(invitacion, profesor) {
     invitacion._rechazar(profesor);
   }
+  /* eslint-enable no-unused-vars */
 }
 
 class Rechazada extends StateInvitacion {
+  /* eslint-disable no-unused-vars */
   aceptar(invitacion, profesor) {
     invitacion._aceptar(profesor);
   }
 
-  // eslint-disable-next-line no-unused-vars
   rechazar(invitacion, profesor) {
     throw new Error("Ya rechazaste esta invitación");
   }
+  /* eslint-enable no-unused-vars */
 }
 
 function obtenerEstadoInstancia(estado) {

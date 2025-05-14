@@ -49,7 +49,9 @@ class StrategyPushNotification extends StrategyNotification {
    * @param {string} otroProfesor - Nombre del profesor vocal
    * @param {string} rolOtroProfesor - Rol del otro profesor
    */
+  /* eslint-disable no-unused-vars */
   notificar(nombreProfesor, materia, fecha, rol, otroProfesor, rolOtroProfesor) {
+  /* eslint-enable no-unused-vars */
     try {
       // Validación de parámetros
       if (!this.validateParams({ nombreProfesor, materia, fecha, rol, otroProfesor, rolOtroProfesor })) {
