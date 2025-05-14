@@ -4,7 +4,7 @@ const app = express();
 const port = 3000;
 require('dotenv').config();
 
-const { Invitaciones: invitaciones } = require('./data/invitaciones');
+const { Invitaciones: invitaciones } = require('./data/Invitaciones');
 
 const { mesas } = require('./data/mesas');
 const profesores = require('./data/profesores');
