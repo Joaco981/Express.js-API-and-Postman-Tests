@@ -1,28 +1,25 @@
-const express = require('express');
-const cors = require('cors');
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import { Invitaciones as invitaciones } from './data/invitaciones.js';
+import { mesas } from './data/mesas.js';
+import profesores from './data/profesores.js';
+import Notificador from './models/Notificador.js';
+import ObserverEmail from './service/ObserverEmail.js';
+import NotificadorPush from './models/NotificadorPush.js';
+
+dotenv.config();
+
 const app = express();
 const port = 3000;
-require('dotenv').config();
-
-const { Invitaciones: invitaciones } = require('./data/invitaciones');
-
-const { mesas } = require('./data/mesas');
-const profesores = require('./data/profesores');
-const { obtenerEstadoInstancia } = require('./service/StateInvitacion');
 
 // Notificador para emails
-const Notificador = require('./models/Notificador.js');
 const notificador = Notificador.getInstance(profesores);
-const ObserverEmail = require('./service/ObserverEmail.js');
 const emailObserver = new ObserverEmail();
 notificador.addObserver(emailObserver);
 
 // Notificador para push al escritorio
-const NotificadorPush = require('./models/NotificadorPush.js');
 const notificadorPush = NotificadorPush.getInstance();
-
-const EmailService = require('./service/EmailService');
-const emailService = new EmailService();
 
 app.use(cors());
 app.use(express.json());
@@ -37,8 +34,22 @@ app.get('/', (req, res) => {
 // Login
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body;
-  const validUsers = { Jose: '1234', Gilda: 'abcd', Carlos: '1111', Figue: '2222' };
-  if (validUsers[username] === password) return res.json({ username });
+  
+  // Obtener usuarios válidos desde variables de entorno o usar un objeto vacío si no existe
+  const validUsersStr = process.env.VALID_USERS || '{}';
+  let validUsers;
+  
+  try {
+    validUsers = JSON.parse(validUsersStr);
+  } catch (error) {
+    console.error('Error parsing VALID_USERS environment variable:', error);
+    validUsers = {};
+  }
+  
+  if (validUsers[username] === password) {
+    return res.json({ username });
+  }
+  
   res.status(401).json({ error: 'Credenciales inválidas' });
 });
 
@@ -231,11 +242,11 @@ app.get('/api/notificaciones/push/:usuario', (req, res) => {
 });
 
 /* istanbul ignore next */
-if (require.main === module) {
+if (import.meta.url === `file://${process.argv[1]}`) {
   console.log("Iniciando servidor...");
   app.listen(port, () => {
     console.log(`Servidor escuchando en http://localhost:${port}`);
   });
 }
 
-module.exports = app;
+export default app;

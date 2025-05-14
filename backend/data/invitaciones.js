@@ -1,7 +1,7 @@
 // data/Invitaciones.js
-const { Invitacion } = require('../models/Invitacion');
-const Profesor = require('../models/Profesor');
-const Mesa = require('../models/Mesa');
+import { Invitacion } from '../models/Invitacion.js';
+import Profesor from '../models/Profesor.js';
+import Mesa from '../models/Mesa.js';
 
 //Se crean los profesores
 const docente1 = new Profesor('Jose', '24172');
@@ -23,4 +23,4 @@ const Invitaciones = [
   new Invitacion(mesa4, 'pendiente'),
 ];
 
-module.exports = { Invitaciones };
+export { Invitaciones };

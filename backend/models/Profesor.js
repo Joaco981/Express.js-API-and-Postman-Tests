@@ -37,4 +37,4 @@ class Profesor {
     }
 }
 
-module.exports = Profesor;
+export default Profesor;

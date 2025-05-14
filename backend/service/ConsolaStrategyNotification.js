@@ -1,4 +1,4 @@
-const StrategyNotification = require('./StrategyNotification');
+import StrategyNotification from './StrategyNotification.js';
 
 class ConsolaStrategyNotification extends StrategyNotification {
   notificar(nombreProfesor, materia, fecha, rol, otroProfesor, rolOtroProfesor) {
@@ -18,4 +18,4 @@ class ConsolaStrategyNotification extends StrategyNotification {
   }
 }
 
-module.exports = ConsolaStrategyNotification; 
+export default ConsolaStrategyNotification; 

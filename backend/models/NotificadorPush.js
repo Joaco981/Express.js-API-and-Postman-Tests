@@ -1,4 +1,4 @@
-const PushStrategyNotification = require('../service/StrategyPushNotification');
+import PushStrategyNotification from '../service/StrategyPushNotification.js';
 
 /**
  * Implementación del patrón Strategy para notificaciones push
@@ -62,4 +62,4 @@ class NotificadorPush {
   }
 }
 
-module.exports = NotificadorPush; 
+export default NotificadorPush; 

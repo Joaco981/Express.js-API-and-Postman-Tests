@@ -1,4 +1,4 @@
-const { obtenerEstadoInstancia } = require('../service/StateInvitacion');
+import { obtenerEstadoInstancia } from '../service/StateInvitacion.js';
 
 /**
  * Clase que representa una invitación a una mesa de examen
@@ -8,11 +8,10 @@ class Invitacion {
   /**
    * Crea una nueva instancia de Invitacion
    * @param {Mesa} mesa - Mesa de examen asociada
-   * @param {string} estadoInicial - Estado inicial de la invitación (default: 'pendiente')
    * @param {Profesor} titular - Profesor titular
    * @param {Profesor} vocal - Profesor vocal
    */
-  constructor(mesa, estadoInicial = 'pendiente', titular, vocal) {
+  constructor(mesa, _estadoInicial = 'pendiente') {
     this.mesa = mesa;
     this._estados = {
       [mesa.titular.nombre]: 'pendiente',
@@ -99,4 +98,4 @@ class Invitacion {
   }
 }
 
-module.exports = { Invitacion };  // Exportación correcta
+export { Invitacion };

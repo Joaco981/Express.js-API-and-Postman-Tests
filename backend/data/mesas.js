@@ -1,6 +1,6 @@
 // data/Mesas.js
-const Mesa = require('../models/Mesa');
-const Profesor = require('../models/Profesor');
+import Mesa from '../models/Mesa.js';
+import Profesor from '../models/Profesor.js';
 
 
 const docente1 = new Profesor('Jose', '24172');
@@ -13,4 +13,4 @@ const mesas = [
   new Mesa(3, 'Paradigmas I', docente2, docente3, '2025-06-20', ['Rodrigo', 'Augusto'])
 ];
 
-module.exports = { mesas };
+export { mesas };

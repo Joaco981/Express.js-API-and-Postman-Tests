@@ -1,5 +1,5 @@
 // data/Profesores.js
-const Profesor = require('../models/Profesor');
+import Profesor from '../models/Profesor.js';
 
 const docente1 = new Profesor('Jose', '24172');
 const docente2 = new Profesor('Gilda', '67890');
@@ -9,4 +9,4 @@ const profesores = {
   docente2: docente2
 };
 
-module.exports = profesores;
+export default profesores;

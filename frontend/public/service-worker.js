@@ -42,7 +42,7 @@ self.addEventListener('notificationclick', function(event) {
 
   if (event.action === 'explore' || !event.action) {
     event.waitUntil(
-      clients.openWindow(event.notification.data.url || '/dashboard')
+      self.clients.openWindow(event.notification.data.url || '/dashboard')
     );
   }
 });

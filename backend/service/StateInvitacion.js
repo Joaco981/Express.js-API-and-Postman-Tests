@@ -1,8 +1,10 @@
 class StateInvitacion {
+  // eslint-disable-next-line no-unused-vars
   aceptar(invitacion, profesor) {
     throw new Error("Ya procesaste esta invitación");
   }
 
+  // eslint-disable-next-line no-unused-vars
   rechazar(invitacion, profesor) {
     throw new Error("Ya procesaste esta invitación");
   }
@@ -47,7 +49,7 @@ function obtenerEstadoInstancia(estado) {
   }
 }
 
-module.exports = {
+export {
   obtenerEstadoInstancia,
   StateInvitacion
 };

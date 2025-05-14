@@ -1,5 +1,5 @@
-const Notificador = require('../models/Notificador');
-const profesores = require('../data/profesores');
+import Notificador from '../models/Notificador.js';
+import profesores from '../data/profesores.js';
 
 let instancia = null;
 
@@ -10,4 +10,4 @@ function getNotificadorInstance() {
   return instancia;
 }
 
-module.exports = { getNotificadorInstance };
+export { getNotificadorInstance };

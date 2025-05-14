@@ -1,4 +1,4 @@
-const StrategyNotification = require('./StrategyNotification');
+import StrategyNotification from './StrategyNotification.js';
 
 /**
  * Implementación de Strategy para notificaciones push
@@ -15,6 +15,32 @@ class StrategyPushNotification extends StrategyNotification {
   }
 
   /**
+   * Sanitiza texto para prevenir inyecciones
+   * @param {string} text - Texto a sanitizar
+   * @returns {string} Texto sanitizado
+   */
+  sanitize(text) {
+    if (text === null || text === undefined) return '';
+    return String(text)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
+  /**
+   * Valida que los parámetros de entrada sean strings no vacíos
+   * @param {Object} params - Objeto con los parámetros a validar
+   * @returns {boolean} true si todos los parámetros son válidos
+   */
+  validateParams(params) {
+    return Object.values(params).every(val => 
+      val !== null && val !== undefined && typeof val === 'string' && val.trim() !== ''
+    );
+  }
+
+  /**
    * Envía una notificación push a los usuarios correspondientes
    * @param {string} nombreProfesor - Nombre del profesor titular
    * @param {string} materia - Nombre de la materia
@@ -24,37 +50,54 @@ class StrategyPushNotification extends StrategyNotification {
    * @param {string} rolOtroProfesor - Rol del otro profesor
    */
   notificar(nombreProfesor, materia, fecha, rol, otroProfesor, rolOtroProfesor) {
-    // Solo enviamos notificación push cuando ambos profesores han aceptado
-    if (rol === 'confirmada') {
-      // Creamos mensajes personalizados para cada profesor
-      const mensajeTitular = {
-        titulo: 'Confirmación de Mesa',
-        cuerpo: `La invitación para la mesa de ${materia} fue confirmada. Para la fecha ${fecha}.`,
-        timestamp: Date.now()
-      };
-
-      const mensajeVocal = {
-        titulo: 'Confirmación de Mesa',
-        cuerpo: `La invitación para la mesa de ${materia} fue confirmada. Para la fecha ${fecha}.`,
-        timestamp: Date.now()
-      };
-      
-      // Guardamos los mensajes para cada profesor
-      if (this.subscriptions.has(nombreProfesor)) {
-        if (!this.mensajesPendientes.has(nombreProfesor)) {
-          this.mensajesPendientes.set(nombreProfesor, []);
-        }
-        this.mensajesPendientes.get(nombreProfesor).push(mensajeTitular);
-        console.log('Mensaje push guardado para titular:', nombreProfesor);
+    try {
+      // Validación de parámetros
+      if (!this.validateParams({ nombreProfesor, materia, fecha, rol, otroProfesor, rolOtroProfesor })) {
+        console.error('Parámetros inválidos para notificación push');
+        return;
       }
 
-      if (this.subscriptions.has(otroProfesor)) {
-        if (!this.mensajesPendientes.has(otroProfesor)) {
-          this.mensajesPendientes.set(otroProfesor, []);
+      // Sanitizamos todos los valores
+      const safeNombreProfesor = this.sanitize(nombreProfesor);
+      const safeMateria = this.sanitize(materia);
+      const safeFecha = this.sanitize(fecha);
+      const safeOtroProfesor = this.sanitize(otroProfesor);
+      const safeRolOtro = this.sanitize(rolOtroProfesor);
+
+      // Solo enviamos notificación push cuando ambos profesores han aceptado
+      if (rol === 'confirmada') {
+        // Creamos mensajes personalizados para cada profesor
+        const mensajeTitular = {
+          titulo: 'Confirmación de Mesa',
+          cuerpo: `La invitación para la mesa de ${safeMateria} fue confirmada. Para la fecha ${safeFecha}. El profesor ${safeOtroProfesor} participará como ${safeRolOtro}.`,
+          timestamp: Date.now()
+        };
+
+        const mensajeVocal = {
+          titulo: 'Confirmación de Mesa',
+          cuerpo: `La invitación para la mesa de ${safeMateria} fue confirmada. Para la fecha ${safeFecha}. Usted participará como ${safeRolOtro}.`,
+          timestamp: Date.now()
+        };
+        
+        // Guardamos los mensajes para cada profesor
+        if (this.subscriptions.has(safeNombreProfesor)) {
+          if (!this.mensajesPendientes.has(safeNombreProfesor)) {
+            this.mensajesPendientes.set(safeNombreProfesor, []);
+          }
+          this.mensajesPendientes.get(safeNombreProfesor).push(mensajeTitular);
+          console.log('Mensaje push guardado para titular:', safeNombreProfesor);
         }
-        this.mensajesPendientes.get(otroProfesor).push(mensajeVocal);
-        console.log('Mensaje push guardado para vocal:', otroProfesor);
+
+        if (this.subscriptions.has(safeOtroProfesor)) {
+          if (!this.mensajesPendientes.has(safeOtroProfesor)) {
+            this.mensajesPendientes.set(safeOtroProfesor, []);
+          }
+          this.mensajesPendientes.get(safeOtroProfesor).push(mensajeVocal);
+          console.log('Mensaje push guardado para vocal:', safeOtroProfesor);
+        }
       }
+    } catch (error) {
+      console.error('Error al enviar notificación push:', error);
     }
   }
 
@@ -64,9 +107,20 @@ class StrategyPushNotification extends StrategyNotification {
    * @returns {Array} Lista de mensajes pendientes
    */
   obtenerMensajesPendientes(usuario) {
-    const mensajes = this.mensajesPendientes.get(usuario) || [];
-    this.mensajesPendientes.set(usuario, []); // Limpiamos los mensajes después de obtenerlos
-    return mensajes;
+    try {
+      if (!usuario || typeof usuario !== 'string') {
+        console.error('Usuario inválido para obtener mensajes pendientes');
+        return [];
+      }
+      
+      const sanitizedUsuario = this.sanitize(usuario);
+      const mensajes = this.mensajesPendientes.get(sanitizedUsuario) || [];
+      this.mensajesPendientes.set(sanitizedUsuario, []); // Limpiamos los mensajes después de obtenerlos
+      return mensajes;
+    } catch (error) {
+      console.error('Error al obtener mensajes pendientes:', error);
+      return [];
+    }
   }
 
   /**
@@ -75,8 +129,19 @@ class StrategyPushNotification extends StrategyNotification {
    * @returns {boolean} True si el registro fue exitoso
    */
   registrarUsuario(usuario) {
-    this.subscriptions.set(usuario, true);
-    return true;
+    try {
+      if (!usuario || typeof usuario !== 'string' || usuario.trim() === '') {
+        console.error('Usuario inválido para registrar');
+        return false;
+      }
+      
+      const sanitizedUsuario = this.sanitize(usuario);
+      this.subscriptions.set(sanitizedUsuario, true);
+      return true;
+    } catch (error) {
+      console.error('Error al registrar usuario:', error);
+      return false;
+    }
   }
 
   /**
@@ -84,9 +149,19 @@ class StrategyPushNotification extends StrategyNotification {
    * @param {string} usuario - Usuario a eliminar
    */
   eliminarUsuario(usuario) {
-    this.subscriptions.delete(usuario);
-    this.mensajesPendientes.delete(usuario);
+    try {
+      if (!usuario || typeof usuario !== 'string') {
+        console.error('Usuario inválido para eliminar');
+        return;
+      }
+      
+      const sanitizedUsuario = this.sanitize(usuario);
+      this.subscriptions.delete(sanitizedUsuario);
+      this.mensajesPendientes.delete(sanitizedUsuario);
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+    }
   }
 }
 
-module.exports = StrategyPushNotification; 
+export default StrategyPushNotification; 

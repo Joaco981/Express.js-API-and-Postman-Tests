@@ -1,5 +1,4 @@
-const ConsolaStrategyNotification = require('../service/ConsolaStrategyNotification');
-const PushStrategyNotification = require('../service/StrategyPushNotification');
+import ConsolaStrategyNotification from '../service/ConsolaStrategyNotification.js';
 
 /**
  * Implementación del patrón Observer para el sistema de notificaciones
@@ -16,6 +15,8 @@ class Notificador {
     this.notificaciones = [];
     this.profesores = profesores;
     this.observers = []; // Observer para email
+    // Inicializar la estrategia de consola para debugging si es necesario
+    this.consolaStrategy = new ConsolaStrategyNotification();
 
     Notificador._instance = this;
   }
@@ -76,6 +77,16 @@ class Notificador {
     mensajesEmail.forEach(msg => {
       this.notificaciones.push(msg);
       this.notifyObservers(msg);
+      
+      // Opcional: Mostrar en consola para debugging
+      this.consolaStrategy.notificar(
+        msg.receptor, 
+        msg.materia, 
+        msg.fecha, 
+        msg.rol, 
+        msg.otroProfesor, 
+        msg.rolOtro
+      );
     });
   }
 
@@ -102,19 +113,34 @@ class Notificador {
     };
   }
 
+  /**
+   * Obtiene todas las notificaciones registradas
+   * @returns {Array} Lista de notificaciones
+   */
   obtenerNotificaciones() {
     return this.notificaciones;
   }
 
+  /**
+   * Obtiene notificaciones filtradas por usuario
+   * @param {string} usuario - Usuario para filtrar notificaciones
+   * @returns {Array} Lista de notificaciones del usuario
+   */
   obtenerNotificacionesPorUsuario(usuario) {
     return this.notificaciones.filter(n => n.receptor === usuario);
   }
 
-  // Método para registrar suscripciones push
+  /**
+   * Método para registrar suscripciones push
+   * @param {string} usuario - Usuario a registrar
+   * @param {Object} subscription - Datos de la suscripción
+   */
   registrarSuscripcionPush(usuario, subscription) {
-    this.estrategiaPush.registrarSuscripcion(usuario, subscription);
+    if (this.estrategiaPush) {
+      this.estrategiaPush.registrarUsuario(usuario, subscription);
+    }
   }
 }
 
-module.exports = Notificador;
+export default Notificador;
 

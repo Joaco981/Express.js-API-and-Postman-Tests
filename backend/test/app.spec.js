@@ -1,8 +1,8 @@
-const { Invitaciones } = require('../data/Invitaciones');
-const { mesas } = require('../data/mesas');
+import { Invitaciones } from '../data/Invitaciones.js';
+import { mesas } from '../data/mesas.js';
 //
-const request = require('supertest');
-const app = require('../app'); 
+import request from 'supertest';
+import app from '../app.js'; 
 
 describe('API', () => {
 
@@ -124,7 +124,7 @@ describe("POST /api/invitaciones/aceptar", () => {
 
     //Se testea el post de aceptar individual por el titular
     test("cambia el estado individual a aceptada para el usuario (titular)", async () => {
-      const res = await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Gilda" });
+      await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Gilda" });
 
       // Confirmamos que el estado de Gilda en mesa1 haya cambiado
       const invitacion = Invitaciones.find(i => i.mesa.id === 4);
@@ -140,7 +140,7 @@ describe("POST /api/invitaciones/aceptar", () => {
 
     //Se testea el post de aceptar individual por el vocal
     test("cambia el estado individual a aceptada para el usuario (vocal)", async () => {
-        const res = await request(app).post('/api/invitaciones/aceptar').send({ id: 6, usuario: "Jose" });
+        await request(app).post('/api/invitaciones/aceptar').send({ id: 6, usuario: "Jose" });
   
         // Confirmamos que el estado de Gilda en mesa1 haya cambiado
         const invitacion = Invitaciones.find(i => i.mesa.id === 6);
@@ -189,7 +189,7 @@ describe("POST /api/invitaciones/aceptar - aceptación completa", () => {
         await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Gilda" });
       
         // Segunda aceptación de Jose
-        const res = await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Jose" });
+        await request(app).post('/api/invitaciones/aceptar').send({ id: 4, usuario: "Jose" });
 
         // Verificar que la mesa fue agregada
         const mesaAgregada = mesas.find(m => m.id === 4);
