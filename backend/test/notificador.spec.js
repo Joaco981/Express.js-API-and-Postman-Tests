@@ -1,6 +1,6 @@
-const Notificador = require('../models/Notificador');
-const Mesa = require('../models/Mesa');
-const Profesor = require('../models/Profesor');
+import Notificador from '../models/Notificador.js';
+import Mesa from '../models/Mesa.js';
+import Profesor from '../models/Profesor.js';
 
 /**
  * Mock del Observer para pruebas

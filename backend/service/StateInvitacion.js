@@ -21,6 +21,7 @@ class Pendiente extends StateInvitacion {
 }
 
 class Aceptada extends StateInvitacion {
+  // eslint-disable-next-line no-unused-vars
   aceptar(invitacion, profesor) {
     throw new Error("Ya aceptaste esta invitación");
   }
@@ -35,6 +36,7 @@ class Rechazada extends StateInvitacion {
     invitacion._aceptar(profesor);
   }
 
+  // eslint-disable-next-line no-unused-vars
   rechazar(invitacion, profesor) {
     throw new Error("Ya rechazaste esta invitación");
   }

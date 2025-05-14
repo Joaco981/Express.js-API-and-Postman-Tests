@@ -1,7 +1,7 @@
-const NotificadorPush = require('../models/NotificadorPush');
-const PushStrategyNotification = require('../service/StrategyPushNotification');
+import NotificadorPush from '../models/NotificadorPush.js';
+import PushStrategyNotification from '../service/StrategyPushNotification.js';
 
-jest.mock('../service/StrategyPushNotification', () => {
+jest.mock('../service/StrategyPushNotification.js', () => {
   return jest.fn().mockImplementation(() => {
     return {
       notificar: jest.fn(),
