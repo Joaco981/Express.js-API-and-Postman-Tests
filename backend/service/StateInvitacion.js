@@ -1,11 +1,11 @@
 class StateInvitacion {
-  // eslint-disable-next-line no-unused-vars
   aceptar(invitacion, profesor) {
+    console.log(`Intentando aceptar con invitación: ${invitacion} y profesor: ${profesor}`);
     throw new Error("Ya procesaste esta invitación");
   }
 
-  // eslint-disable-next-line no-unused-vars
   rechazar(invitacion, profesor) {
+    console.log(`Intentando rechazar con invitación: ${invitacion} y profesor: ${profesor}`);
     throw new Error("Ya procesaste esta invitación");
   }
 }
