@@ -1,4 +1,4 @@
-const PushStrategyNotification = require('../service/StrategyPushNotification');
+import PushStrategyNotification from '../service/StrategyPushNotification.js';
 
 describe('PushStrategyNotification', () => {
 

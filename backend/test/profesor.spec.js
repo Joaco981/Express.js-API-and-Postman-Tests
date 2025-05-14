@@ -1,4 +1,4 @@
-const Profesor = require('../models/Profesor');
+import Profesor from '../models/Profesor.js';
 
 describe("Clase Profesor", () => {
     test("Crear profesor con nombre y legajo", () => {

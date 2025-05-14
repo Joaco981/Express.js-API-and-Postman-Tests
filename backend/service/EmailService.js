@@ -1,5 +1,7 @@
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 /**
  * Servicio para envío de emails usando nodemailer
@@ -83,4 +85,4 @@ class EmailService {
   }
 }
 
-module.exports = EmailService;
+export default EmailService;

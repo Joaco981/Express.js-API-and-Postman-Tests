@@ -1,5 +1,7 @@
-const nodemailer = require('nodemailer');
-require('dotenv').config();
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -20,4 +22,4 @@ function enviarConfirmacionInvitacion(mensaje) {
   return transporter.sendMail(mailOptions);
 }
 
-module.exports = { enviarConfirmacionInvitacion };
+export { enviarConfirmacionInvitacion };

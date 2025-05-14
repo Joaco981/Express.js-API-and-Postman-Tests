@@ -1,5 +1,5 @@
-const ConsolaStrategyNotification = require('../service/ConsolaStrategyNotification');
-const StrategyNotification = require('../service/StrategyNotification');
+import ConsolaStrategyNotification from '../service/ConsolaStrategyNotification.js';
+import StrategyNotification from '../service/StrategyNotification.js';
 
 /**
  * Suite de pruebas para la clase base StrategyNotification

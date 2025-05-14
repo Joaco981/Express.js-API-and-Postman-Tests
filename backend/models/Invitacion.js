@@ -11,7 +11,7 @@ class Invitacion {
    * @param {Profesor} titular - Profesor titular
    * @param {Profesor} vocal - Profesor vocal
    */
-  constructor(mesa, _estadoInicial = 'pendiente') {
+  constructor(mesa) {
     this.mesa = mesa;
     this._estados = {
       [mesa.titular.nombre]: 'pendiente',

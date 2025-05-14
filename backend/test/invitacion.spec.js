@@ -1,6 +1,6 @@
-const Mesa = require('../models/Mesa');
-const Profesor = require('../models/Profesor');
-const { Invitacion } = require('../models/Invitacion');
+import Mesa from '../models/Mesa.js';
+import Profesor from '../models/Profesor.js';
+import { Invitacion } from '../models/Invitacion.js';
 
 describe("Clase Invitacion", () => {
     let invitacion;

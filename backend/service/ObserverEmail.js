@@ -1,5 +1,7 @@
-require('dotenv').config(); // Para usar variables del .env
-const EmailService = require('../service/EmailService');
+import dotenv from 'dotenv'; // Para usar variables del .env
+import EmailService from '../service/EmailService.js';
+
+dotenv.config();
 
 /**
  * Implementación del Observer para envío de notificaciones por email
@@ -65,4 +67,4 @@ class ObserverEmail {
   }
 }
 
-module.exports = ObserverEmail;
+export default ObserverEmail;
