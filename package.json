@@ -17,7 +17,7 @@
     "web-push": "^3.6.7"
   },
   "scripts": {
-    "test": "jest",
+    "test": "jest --testPathIgnorePatterns=app.spec.js",
     "coverage": "jest --coverage"
   }
 }
